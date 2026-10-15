@@ -21,7 +21,7 @@ from .config import GameConfig
 from .errors import GameError
 from .fairness import FairnessScheme, Verification
 from .ledger import Bet, Ledger
-from .money import crash_offset_ms, format_credits, multiplier_at, multiplier_to_float
+from .money import crash_offset_ms, elapsed_for_multiplier_ms, format_credits, multiplier_at, multiplier_to_float
 from .rng import CrashPointProvider, RoundSecret
 from .schemas import (
     BalanceData, BettingData, CashoutData, CrashedData, HistoryData, HistoryEntry,
@@ -267,6 +267,28 @@ class RoundEngine:
             raise GameError("TOO_LATE", "Round crashed before cash-out was received.")
         bet = self._apply_cash_out(account_id, round_id, self._multiplier_at(now), auto=False)
         return bet, self.ledger.get_account(account_id).balance
+
+    # ---------- Testing aid (only reachable when dev cheats are enabled) ----------
+
+    def skip_ahead(self, add_hundredths: int) -> tuple[int, int]:
+        """Jump the flight forward so the multiplier rises by ``add_hundredths``.
+
+        It moves the launch time (and the precomputed crash time) back, which is
+        the same as the flight having started earlier. The crash point and seed are
+        untouched, so the round still verifies; if the jump passes the crash point,
+        the next tick crashes the round. Auto cash outs on the way are paid at
+        their targets by that tick. Returns ``(launched_at_ms, multiplier)``.
+        """
+        r = self.round
+        if r.state != IN_FLIGHT:
+            raise GameError("ROUND_NOT_IN_FLIGHT", "Skipping works only while the rocket is in flight.")
+        now = self.clock.now_ms()
+        current = multiplier_at(now - r.launched_at, self.config.growthRate)
+        shift = elapsed_for_multiplier_ms(current + add_hundredths, self.config.growthRate) - (now - r.launched_at)
+        r.launched_at -= shift
+        r.crash_at -= shift
+        log.warning("%s: dev skip +%s (multiplier now %s)", r.round_id, add_hundredths, current + add_hundredths)
+        return r.launched_at, multiplier_at(now - r.launched_at, self.config.growthRate)
 
     # ---------- Read models (called by the API) ----------
 

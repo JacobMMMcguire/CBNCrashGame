@@ -4,7 +4,7 @@
   "commitment": "9f2c4e1ab07d3c58e6f1a2b9d4c7e03f5a8b16d2c9e4f7a0b3d6c1e8f5a2b9c4",
   "closesAt": "2026-10-15T18:04:12.350Z",
   "launchedAt": "2026-10-15T18:04:12.350Z",
-  "growthRate": 0.12,
+  "growthRate": 0.06,
   "serverTime": "2026-10-15T18:04:15.910Z",
   "myBet": {
     "wager": "100.00",

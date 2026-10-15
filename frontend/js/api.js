@@ -69,5 +69,7 @@ export function createApi({ base, token }) {
       request("POST", `/rounds/${encodeURIComponent(roundId)}/bets`, { body: { wager, autoCashOut }, idempotent: true }),
     cashOut: (roundId) =>
       request("POST", `/rounds/${encodeURIComponent(roundId)}/cashout`, { body: {}, idempotent: true }),
+    /** Testing cheat ("rectangle"); 404 unless the server runs with ASCENT_DEV_CHEATS=1. */
+    devSkip: () => request("POST", "/dev/skip", { body: {} }),
   };
 }

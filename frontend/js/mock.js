@@ -15,7 +15,7 @@ const EVENT_TYPES = [
   "round.crashed", "round.settled", "balance.updated", "history.updated",
 ];
 const RESPONSES = ["config", "account", "current_round", "place_bet", "cash_out", "history", "verify"];
-const SEQUENCE = [184, 312, 100, 247, 1240, 137, 566, 205]; // crash points in hundredths
+const SEQUENCE = [184, 312, 100, 2460, 247, 1240, 137, 10450, 566, 205]; // crash points in hundredths
 const LATENCY_MS = 60;
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -167,6 +167,16 @@ export async function createMockBackend() {
       if (now >= round.crashAt) return fail("TOO_LATE", "Too late.");
       cashOutAt(multiplierAt(now), false);
       return later(cashOutResponse());
+    },
+    devSkip() {
+      if (round.state !== "in-flight") return fail("ROUND_NOT_IN_FLIGHT", "Not in flight.");
+      // Same as the server: move the launch back so the multiplier rises by 5.00x.
+      const now = Date.now();
+      const current = Math.floor(Math.exp((growth * (now - round.launchedAt)) / 1000) * 100);
+      const shift = Math.ceil((Math.log((current + 500) / 100) / growth) * 1000) - (now - round.launchedAt);
+      round.launchedAt -= shift;
+      round.crashAt -= shift;
+      return later({ launchedAt: iso(round.launchedAt), multiplier: Math.min(current + 500, round.crash - 1) / 100 });
     },
     verify(roundId) {
       const h = history.find((r) => r.roundId === roundId);

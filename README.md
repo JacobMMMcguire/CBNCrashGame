@@ -133,6 +133,10 @@ CBNCrashGame/
 
 The design mock still opens directly from disk: double-click `frontend/mock_frontend.html`.
 
+## Credits
+
+Sound effects: [Kenney](https://www.kenney.nl) "Sci-Fi Sounds" and "Interface Sounds" (CC0), converted to MP3 in `frontend/assets/sfx/`.
+
 ## Team
 
 _Add team members here._

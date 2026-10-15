@@ -11,7 +11,7 @@ def test_repo_config_loads():
     cfg = load_config()
     assert cfg.min_bet_units == 100
     assert cfg.max_bet_units == 100_000
-    assert cfg.max_multiplier_hundredths == 10_000
+    assert cfg.max_multiplier_hundredths == 1_000_000
     assert cfg.contractVersion
 
 

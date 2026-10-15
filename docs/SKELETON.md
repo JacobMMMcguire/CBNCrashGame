@@ -62,7 +62,12 @@ frontend/
   js/store.js     observable state + uiPhase()
   js/i18n.js      string catalog and fr-CA / en-CA number formatting
   js/mock.js      ?mock=1 fake server built from contract/examples
-  js/components/  header, stage, controls, history, fair, session
+  js/fairness.js  in-browser SHA-256 / HMAC re-check of finished rounds
+  js/live.js      live multiplier, countdown and payout shared by the stage and read data
+  js/audio.js     Web Audio sound effects (engine loop follows the climb speed)
+  assets/sfx/     Kenney CC0 sound effects (MP3) and their licence files
+  js/scene/       canvas scene: scene.js (flight, smoke, stars, explosion), art.js (vector art), milestones.js (planets per 10x)
+  js/components/  stage (scene + readout), data (read data), controls, menu (rules, odds, verify, reality check)
   locales/        en.json, fr.json
 scripts/          dev.ps1, dev.sh, check_env.py, export_schemas.py
 ```
@@ -76,12 +81,12 @@ scripts/          dev.ps1, dev.sh, check_env.py, export_schemas.py
 | Money and multiplier maths | Real. Integer units and hundredths, with floors as the contract specifies. |
 | HTTP API, error shape, idempotency | Real, following the contract; the store behind idempotency is in memory. |
 | WebSocket events | Real envelopes and private routing; `seq` is per connection. |
-| **Crash points** (`FixedSequenceCrashPointProvider`) | **SKELETON ONLY.** A fixed, repeating list (1.84, 3.12, 1.00, 2.47, 12.40, 1.37, 5.66, 2.05). The seed is a SHA-256 of a public string. Predictable by design. |
-| **Commitment and verify** (`PlaceholderFairness`) | **SKELETON ONLY.** The commitment is a zero-padded CRC32, which commits to nothing. `verify` always returns `valid: false` and an HMAC of zeros. |
+| Crash points (`ProvablyFairCrashPointProvider`) | Real (contract §4.1, §4.2). A 32-byte `secrets` seed per round; crash point from HMAC-SHA256 in exact integer maths. `test_fairness.py` checks the formula and simulates 200,000 rounds against the target RTP. `FixedSequenceCrashPointProvider` remains for tests only. |
+| Commitment and verify (`Sha256Fairness`) | Real (contract §4.3). `commitment = SHA-256(seed)`; `verify` re-checks the hash and the crash point. The browser repeats the check independently (`frontend/js/fairness.js`). `PlaceholderFairness` remains for tests only. |
 | **Ledger** (`InMemoryLedger`, `InMemoryIdempotencyStore`) | **SKELETON ONLY.** Process memory with one lock; everything is lost on restart; idempotency entries never expire; no audit trail. |
 | **Identity** (`auth.py`) | **SKELETON ONLY.** Any well-formed guest token is accepted; the browser makes its own and keeps it in localStorage. |
-| Frontend | Shell: structure, states, i18n, a11y baseline. No chart, rocket, animation, session stats or verify UI yet. |
-| Mock mode | MOCK ONLY: fixed crash list and the sample seed from the examples. |
+| Frontend | Game screen: canvas launch scene (`js/scene/`), read-data panel, controls with queued next-launch bets, session stats, in-browser verify, odds table, reality check, EN/FR. One screen with no page scroll on phone and desktop. |
+| Mock mode | MOCK ONLY: fixed crash list (includes 24.60× and 44.70× to show planet flybys) and the sample seed from the examples, so verify reports a mismatch there. |
 
 ## How to replace a stub
 

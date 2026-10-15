@@ -9,6 +9,7 @@ import asyncio
 import contextlib
 import logging
 import mimetypes
+import os
 from dataclasses import dataclass
 
 from fastapi import FastAPI, Request
@@ -22,10 +23,10 @@ from .clock import Clock, SystemClock
 from .config import REPO_ROOT, GameConfig, load_config
 from .engine import RoundEngine
 from .errors import GameError
-from .fairness import FairnessScheme, PlaceholderFairness
+from .fairness import FairnessScheme, Sha256Fairness
 from .idempotency import IdempotencyStore, InMemoryIdempotencyStore
 from .ledger import InMemoryLedger, Ledger
-from .rng import CrashPointProvider, FixedSequenceCrashPointProvider
+from .rng import CrashPointProvider, ProvablyFairCrashPointProvider
 
 log = logging.getLogger("ascent")
 
@@ -36,6 +37,7 @@ CONTRACT_DIR = REPO_ROOT / "contract"
 mimetypes.add_type("text/javascript", ".js")
 mimetypes.add_type("text/css", ".css")
 mimetypes.add_type("application/json", ".json")
+mimetypes.add_type("audio/mpeg", ".mp3")
 
 
 @dataclass
@@ -55,6 +57,7 @@ def create_app(
     fairness: FairnessScheme | None = None,
     ledger: Ledger | None = None,
     autostart: bool = True,
+    dev_cheats: bool | None = None,
 ) -> FastAPI:
     """Build the app. Swap a stub for a real implementation by passing it here.
 
@@ -64,12 +67,12 @@ def create_app(
     config = config or load_config()
     ledger = ledger or InMemoryLedger(config.starting_balance_units)
     broadcaster = realtime.Broadcaster()
+    rtp, cap = config.targetRtp, config.max_multiplier_hundredths
     engine = RoundEngine(
         config,
         ledger,
-        # SKELETON ONLY stubs. Replace them here when the real modules land.
-        provider or FixedSequenceCrashPointProvider(max_multiplier=config.max_multiplier_hundredths),
-        fairness or PlaceholderFairness(),
+        provider or ProvablyFairCrashPointProvider(rtp, cap),
+        fairness or Sha256Fairness(rtp, cap),
         clock or SystemClock(),
         broadcaster,
     )
@@ -110,6 +113,9 @@ def create_app(
         return JSONResponse(body, 422)
 
     app.include_router(api.router)
+    if dev_cheats if dev_cheats is not None else os.environ.get("ASCENT_DEV_CHEATS") == "1":
+        log.warning("Dev cheats are ON (ASCENT_DEV_CHEATS=1). Never enable this outside local testing.")
+        app.include_router(api.dev_router)
     app.include_router(realtime.router)
 
     @app.get("/", include_in_schema=False)

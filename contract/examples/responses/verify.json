@@ -4,7 +4,7 @@
   "serverSeed": "c41e7b9a5d2f08e36b1c4a7d9e2f5081b3c6d9e2a5f8b1c4d7e0a3f6b9c2e5d8",
   "hmac": "5e0b3c7a91d24f68b0c3e5a7d9f1b3c5e7a9d1f3b5c7e9a1d3f5b7c9e1a3d5f7",
   "targetRtp": 0.97,
-  "maxMultiplier": 100.0,
+  "maxMultiplier": 10000.0,
   "crash": 1.84,
   "valid": true
 }

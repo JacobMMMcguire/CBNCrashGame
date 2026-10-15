@@ -40,7 +40,9 @@ class RecordingSink:
 
 @pytest.fixture
 def config() -> GameConfig:
-    return make_config()
+    # Engine tests assert exact timings and caps, so they pin these two values
+    # instead of following whatever config/game.json is tuned to.
+    return make_config(growthRate=0.12, maxMultiplier=Decimal("100.00"))
 
 
 @pytest.fixture
@@ -68,7 +70,8 @@ def engine(config, clock, sink):
 def app_and_clock(config):
     """App with the round loop stopped and a manual clock, so tests drive the engine."""
     clock = ManualClock()
-    app = create_app(config, clock=clock, provider=FixedSequenceCrashPointProvider((247,)), autostart=False)
+    app = create_app(config, clock=clock, provider=FixedSequenceCrashPointProvider((247,)),
+                     fairness=PlaceholderFairness(), autostart=False)
     return app, clock
 
 

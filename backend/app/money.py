@@ -72,6 +72,13 @@ def crash_offset_ms(crash_hundredths: int, growth_rate: float) -> int:
     return math.ceil(math.log(crash_hundredths / 100) / growth_rate * 1000)
 
 
+def elapsed_for_multiplier_ms(hundredths: int, growth_rate: float) -> int:
+    """Milliseconds after launch at which m(t) first reaches ``hundredths`` (inverse of multiplier_at)."""
+    if hundredths <= 100:
+        return 0
+    return math.ceil(math.log(hundredths / 100) / growth_rate * 1000)
+
+
 def payout_units(wager_units: int, multiplier_hundredths: int) -> int:
     """wager x multiplier, rounded down to whole units (contract §5)."""
     return wager_units * multiplier_hundredths // 100

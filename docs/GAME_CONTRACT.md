@@ -54,8 +54,8 @@ All tunable values live in **one config file** (planned path: `config/game.confi
 | `minBet` | Smallest wager allowed, in credits | `1.00` | |
 | `maxBet` | Largest wager allowed, in credits | `1000.00` | |
 | `startingBalance` | Balance a new play account starts with | `1000.00` | Play credits only |
-| `maxMultiplier` | Highest crash point the RNG can produce | `100.00` | The brief calls this the "predefined maximum multiplier" |
-| `growthRate` | How fast the multiplier climbs: `m(t) = e^(growthRate × t)`, where t is in seconds | `0.12` | At 0.12 the multiplier reaches 2× after about 5.8 s and 10× after about 19.2 s |
+| `maxMultiplier` | Highest crash point the RNG can produce | `10000.00` | The brief calls this the "predefined maximum multiplier". Real games cap far above typical play (Stake: 1,000,000×); a low cap piles about 1% of rounds onto exactly the cap |
+| `growthRate` | How fast the multiplier climbs: `m(t) = e^(growthRate × t)`, where t is in seconds | `0.06` | Bustabit's curve (`e^(0.00006 × ms)`). Every doubling takes the same 11.6 s: 2× at 11.6 s, 10× at 38.4 s, 100× at 76.8 s |
 | `targetRtp` | Long-run return to player (1 − house edge) | `0.97` | Equivalent to a 3% house edge. The final value is **TBD** |
 | `bettingWindowMs` | How long the betting window stays open | `5000` | |
 | `settleDelayMs` | Pause after a crash before the next round | `3000` | |
@@ -87,7 +87,8 @@ raw      = targetRtp / (1 − u)
 crash    = min( maxMultiplier, max( 1.00, floor(raw × 100) / 100 ) )
 ```
 - **Why this formula:** the chance that the crash point is at least `m` equals `targetRtp / m`. That means every cash-out target returns `targetRtp` on average, and the house edge holds whatever strategy the player uses.
-- About 3% of rounds (when `targetRtp` is `0.97`) crash at exactly 1.00×. That is the house edge at work, not a bug.
+- About 4% of rounds (when `targetRtp` is `0.97`: `1 − 0.97 / 1.01 ≈ 3.96%`) crash at exactly 1.00×. That is the house edge at work, not a bug.
+- Encoding: the HMAC key and the SHA-256 input are the 64-character hex `serverSeed` as ASCII bytes; the message is `roundId` as UTF-8.
 - Capping at `maxMultiplier` slightly lowers RTP for players aiming above the cap. Document this in the UI help. Whether to adjust for it is **TBD**.
 - Mixing in a client seed so players can contribute to the randomness is **TBD** and out of scope for the MVP. If added, the message becomes `roundId:clientSeed`.
 

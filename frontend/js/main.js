@@ -9,12 +9,12 @@ import { ApiError, createApi, guestToken } from "./api.js";
 import { createRealtime, websocketUrl } from "./realtime.js";
 import { createStore, initialState } from "./store.js";
 import { parseCreditsInput, parseMultiplierInput, setLanguage, t } from "./i18n.js";
-import { mountHeader } from "./components/header.js";
+import { verifyRound } from "./fairness.js";
+import { createAudio } from "./audio.js";
 import { mountStage } from "./components/stage.js";
+import { mountData } from "./components/data.js";
 import { mountControls } from "./components/controls.js";
-import { mountHistory } from "./components/history.js";
-import { mountFair } from "./components/fair.js";
-import { mountSession } from "./components/session.js";
+import { mountMenu } from "./components/menu.js";
 
 const params = new URLSearchParams(location.search);
 const isMock = params.get("mock") === "1";
@@ -25,15 +25,8 @@ const pref = {
   set(key, value) { try { localStorage.setItem(key, value); } catch { /* storage blocked: not remembered */ } },
 };
 
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  store.set({ theme });
-}
-applyTheme(pref.get("ascent-theme") === "day" ? "day" : "mission");
-
 async function createBackend() {
   if (isMock) {
-    document.getElementById("mockBanner").hidden = false;
     const { createMockBackend } = await import("./mock.js");
     return createMockBackend();
   }
@@ -73,15 +66,18 @@ async function boot() {
   const config = await untilOk(() => api.config());
   const lang = config.supportedLanguages.includes(stored) ? stored : config.defaultLanguage;
   await setLanguage(lang);
-  const defaultWager = config.quickBetChips.includes("100.00") ? "100.00" : config.minBet;
-  store.set({ config, lang, wagerText: defaultWager });
+  const defaultWager = config.quickBetChips.includes("10.00") ? "10.00" : config.minBet;
+  store.set({
+    config, lang, wagerText: pref.get("ascent-wager") || defaultWager,
+    autoText: pref.get("ascent-auto") || "2.00", autoOn: pref.get("ascent-auto-on") === "1",
+  });
 
   // ---------- Resync from GET endpoints (on connect and on a seq gap) ----------
   let syncing = null;
   function resync() {
     syncing ??= (async () => {
       try {
-        const [account, cur, hist] = await Promise.all([api.account(), api.currentRound(), api.history(20)]);
+        const [account, cur, hist] = await Promise.all([api.account(), api.currentRound(), api.history(30)]);
         store.set({
           balance: account.balance,
           round: {
@@ -101,6 +97,18 @@ async function boot() {
     return syncing;
   }
 
+  function recordSession(myResult) {
+    if (!myResult) return;
+    store.set((st) => {
+      const s = { ...st.session };
+      s.rounds += 1;
+      s.wagered += Number(myResult.wager);
+      s.net += Number(myResult.profit);
+      if (myResult.status === "cashed-out") s.best = Math.max(s.best ?? 0, myResult.multiplier);
+      return { session: s };
+    });
+  }
+
   // ---------- Server events -> store (GAME_CONTRACT.md §9) ----------
   function onEvent(msg) {
     const s = store.get();
@@ -113,6 +121,10 @@ async function boot() {
                    launchedAt: null, crash: null, serverSeed: null },
           myBet: null, multiplier: 1, error: null,
         });
+        if (s.queued) {
+          store.set({ queued: false });
+          actions.placeBet();
+        }
         break;
       case "round.launched":
         if (!sameRound) return void resync();
@@ -124,7 +136,7 @@ async function boot() {
         break;
       case "round.cashout":
         if (!sameRound) return;
-        store.set({ myBet: { ...s.myBet, status: "cashed-out", multiplier: d.multiplier, payout: d.payout } });
+        store.set({ myBet: { ...s.myBet, status: "cashed-out", multiplier: d.multiplier, payout: d.payout, auto: d.auto } });
         break;
       case "round.crashed":
         if (!sameRound) return void resync();
@@ -148,6 +160,7 @@ async function boot() {
           myResult = { wager: bet.wager, status: bet.status, profit: (payout - Number(bet.wager)).toFixed(2) };
           if (bet.status === "cashed-out") myResult.multiplier = bet.multiplier;
         }
+        if (!s.history.some((h) => h.roundId === roundId)) recordSession(myResult);
         store.set({ history: [{ roundId, crash, myResult }, ...s.history.filter((h) => h.roundId !== roundId)].slice(0, 50) });
         break;
       }
@@ -159,7 +172,7 @@ async function boot() {
     async placeBet() {
       const s = store.get();
       const wager = parseCreditsInput(s.wagerText);
-      const auto = s.autoText.trim() ? parseMultiplierInput(s.autoText) : null;
+      const auto = s.autoOn && s.autoText.trim() ? parseMultiplierInput(s.autoText) : null;
       store.set({ pending: "bet", error: null });
       try {
         const r = await api.placeBet(s.round.roundId, wager, auto);
@@ -189,23 +202,74 @@ async function boot() {
         store.set({ pending: null });
       }
     },
+    setQueued(queued) {
+      store.set({ queued, error: null });
+    },
+    setWager(text) {
+      pref.set("ascent-wager", text);
+      store.set({ wagerText: text, error: null });
+    },
+    setAuto(patch) {
+      if ("autoText" in patch) pref.set("ascent-auto", patch.autoText);
+      if ("autoOn" in patch) pref.set("ascent-auto-on", patch.autoOn ? "1" : "0");
+      store.set({ ...patch, error: null });
+    },
+    /** Testing cheat: jump the current flight forward by +5.00x (server must allow it). */
+    async devSkip() {
+      const s = store.get();
+      try {
+        const r = await api.devSkip();
+        store.set((st) => ({
+          round: st.round.roundId === s.round.roundId ? { ...st.round, launchedAt: r.launchedAt } : st.round,
+          multiplier: Math.max(st.multiplier, r.multiplier),
+          notice: { text: t("cheat.skipped", { m: r.multiplier.toFixed(2) }), n: Date.now() },
+        }));
+      } catch (err) {
+        const code = errorCode(err);
+        const key = code === "ROUND_NOT_IN_FLIGHT" ? "cheat.notFlying" : code === "UNKNOWN" || err.status === 404 ? "cheat.off" : `errors.${code}`;
+        store.set({ notice: { text: t(key), n: Date.now() } });
+      }
+    },
+    async verify(roundId) {
+      store.set({ verify: { roundId, status: "loading" } });
+      try {
+        const data = await api.verify(roundId);
+        const check = verifyRound(data, store.get().config);
+        store.set({ verify: { roundId, status: "done", data, check } });
+      } catch (err) {
+        store.set({ verify: { roundId, status: "error", code: errorCode(err) } });
+      }
+    },
     async setLanguage(code) {
       await setLanguage(code);
       pref.set("ascent-lang", code);
       store.set({ lang: code });
     },
-    setTheme(theme) {
-      pref.set("ascent-theme", theme);
-      applyTheme(theme);
-    },
   };
 
-  mountHeader(store, actions);
-  mountStage(store);
+  const audio = createAudio({ enabled: pref.get("ascent-sound") !== "0" });
+  // Soft click for the small controls (chips, steppers, toggles, language)
+  document.addEventListener("click", (e) => {
+    if (e.target.closest(".chip, .stepper__btn, .seg button, .switch, .pill")) audio.play("click");
+  });
+
+  // Cheat code for testing: type "rectangle" anywhere outside a text field.
+  const CHEAT = "rectangle";
+  let typed = "";
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    if (e.target.closest?.("input, textarea, [contenteditable]")) return;
+    typed = (typed + e.key.toLowerCase()).slice(-CHEAT.length);
+    if (typed === CHEAT) {
+      typed = "";
+      actions.devSkip();
+    }
+  });
+
+  const menu = mountMenu(store, actions);
+  mountStage(store, audio, { onSoundChange: (on) => pref.set("ascent-sound", on ? "1" : "0") });
+  mountData(store, { openFair: (roundId) => menu.openFair(roundId) });
   mountControls(store, actions);
-  mountHistory(store);
-  mountFair(store);
-  mountSession(store);
 
   backend.createRealtime({ onEvent, onStatus: (connection) => store.set({ connection }), onResync: resync }).start();
 }

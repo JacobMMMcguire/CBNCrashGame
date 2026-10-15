@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse
 
 from .auth import account_id_from_header
+from .clock import iso_ms
 from .config import public_config
 from .errors import GameError
 from .idempotency import StoredResponse
@@ -24,6 +25,11 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/api/v1")
+
+# Testing aids. main.create_app mounts this router only when dev cheats are
+# enabled (ASCENT_DEV_CHEATS=1); otherwise these paths do not exist (404).
+dev_router = APIRouter(prefix="/api/v1/dev", include_in_schema=False)
+DEV_SKIP_HUNDREDTHS = 500  # "rectangle": +5.00x
 
 
 def services(request: Request):
@@ -139,3 +145,10 @@ async def verify_round(request: Request, round_id: str, account_id: str = Depend
     return {"roundId": round_id, "commitment": v.commitment, "serverSeed": v.server_seed, "hmac": v.hmac,
             "targetRtp": svc.config.targetRtp, "maxMultiplier": float(svc.config.maxMultiplier),
             "crash": multiplier_to_float(v.crash), "valid": v.valid}
+
+
+@dev_router.post("/skip")
+async def dev_skip(request: Request, account_id: str = Depends(current_account)):
+    """Cheat code "rectangle": jump the current flight forward by +5.00x (testing only)."""
+    launched_at, multiplier = services(request).engine.skip_ahead(DEV_SKIP_HUNDREDTHS)
+    return {"launchedAt": iso_ms(launched_at), "multiplier": multiplier_to_float(multiplier)}

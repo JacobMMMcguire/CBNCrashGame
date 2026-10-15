@@ -75,3 +75,13 @@ export function parseMultiplierInput(text) {
   const credits = parseCreditsInput(text);
   return credits === null ? null : Number(credits);
 }
+
+/** Countdown seconds with one decimal: "4.2 s" (en) or "4,2 s" (fr). */
+export function formatSeconds(value) {
+  return t("read.seconds", { s: numberFormat(1).format(Math.max(0, value)) });
+}
+
+/** 0.485 -> "48.5%" (en) or "48,5 %" (fr). */
+export function formatPercent(value) {
+  return new Intl.NumberFormat(LOCALE_TAGS[lang] || lang, { style: "percent", maximumFractionDigits: 2 }).format(value);
+}

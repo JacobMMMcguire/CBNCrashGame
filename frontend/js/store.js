@@ -6,7 +6,6 @@ export const initialState = {
   connection: "connecting", // "connecting" | "open" | "reconnecting" | "offline" | "mock"
   config: null,            // GET /api/v1/config
   lang: "en",
-  theme: "mission",
   balance: null,           // credit string, e.g. "1000.00"
   round: { roundId: null, state: "idle", commitment: null, closesAt: null, launchedAt: null, crash: null, serverSeed: null },
   multiplier: 1,           // last round.tick value
@@ -16,7 +15,12 @@ export const initialState = {
   error: null,             // last error code, e.g. "TOO_LATE"
   clockOffsetMs: 0,        // serverTime - Date.now(), for the betting countdown
   wagerText: "",
-  autoText: "",
+  autoText: "2.00",
+  autoOn: false,
+  queued: false,           // "Bet next launch": place the bet as soon as boarding opens
+  session: { startedAt: Date.now(), rounds: 0, wagered: 0, net: 0, best: null },
+  verify: null,
+  notice: null,            // { text, n }: a one-off toast (e.g. the testing cheat)            // { roundId, status: "loading" | "done" | "error", data?, check? }
 };
 
 export function createStore(initial) {
