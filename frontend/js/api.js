@@ -62,6 +62,7 @@ export function createApi({ base, token }) {
     health: () => request("GET", "/health"),
     config: () => request("GET", "/config"),
     account: () => request("GET", "/account"),
+    refill: () => request("POST", "/account/refill", { body: {} }),
     currentRound: () => request("GET", "/rounds/current"),
     history: (limit = 20) => request("GET", `/history?limit=${limit}`),
     verify: (roundId) => request("GET", `/rounds/${encodeURIComponent(roundId)}/verify`),

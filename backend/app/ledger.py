@@ -81,6 +81,10 @@ class Ledger(ABC):
         """
 
     @abstractmethod
+    def refill(self, account_id: str, balance: int) -> Account:
+        """Set a play account's balance back to ``balance`` (play credits only)."""
+
+    @abstractmethod
     def mark_lost(self, round_id: str) -> list[Bet]:
         """Mark every still-active bet of the round as lost. Returns them."""
 
@@ -148,6 +152,12 @@ class InMemoryLedger(Ledger):
             self._accounts[account_id] = replace(acc, balance=acc.balance + payout)
             self._bets[(account_id, round_id)] = bet
             return bet, True
+
+    def refill(self, account_id: str, balance: int) -> Account:
+        with self._lock:
+            acc = replace(self._accounts[account_id], balance=balance)
+            self._accounts[account_id] = acc
+            return acc
 
     def mark_lost(self, round_id: str) -> list[Bet]:
         with self._lock:

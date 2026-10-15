@@ -2,7 +2,7 @@
 
 This is a runnable foundation for Ascent. The backend and the frontend can be developed on it in parallel. Every part runs end to end: a server-clock round loop, the HTTP API, the WebSocket events, and a browser shell that reacts to them. **The randomness, fairness and ledger are stand-ins.** They are labelled `SKELETON ONLY` in the code. They are not random, not fair and not secure, and they must be replaced before the demo.
 
-The rules come from [GAME_CONTRACT.md](GAME_CONTRACT.md). Where the skeleton had to go beyond it, the change is listed under [Contract changes proposed](#contract-changes-proposed). The contract itself has not been edited.
+The rules come from [GAME_CONTRACT.md](GAME_CONTRACT.md). Where the skeleton had to go beyond it, the change is listed under [Contract changes proposed](#contract-changes-proposed). GAME_CONTRACT.md itself was edited only for the growth rate, the maximum multiplier and the seed encoding (§3, §4.2).
 
 ## Run and test
 
@@ -127,12 +127,13 @@ None of these are in GAME_CONTRACT.md yet. The skeleton implements them, and the
 9. **Idempotency replays** carry an `Idempotent-Replayed: true` header. Rejected requests (4xx game errors) are stored and replayed too.
 10. **Credit strings** must have exactly two decimals in requests (`"100.00"`, not `"100"`).
 11. **`GET /history`** accepts `limit` from 1 to 100 (default 20). The server keeps the last 100 rounds in memory.
+12. **`POST /api/v1/account/refill`** (play credits only) sets a broke account back to `startingBalance`. It is allowed only when the balance is below `minBet` and no bet is riding; otherwise `409 REFILL_NOT_NEEDED`. It returns the account body and sends `balance.updated` with reason `"refill"`.
+13. **`POST /api/v1/dev/skip`** (testing only) exists only when the server starts with `ASCENT_DEV_CHEATS=1`. In flight it moves the launch time back so the multiplier rises by 5.00×; the crash point and seed are unchanged.
+14. **A failed round refunds** every active bet as a cash out at 1.00× (`engine._abandon_round`), so players get their wager back through the usual `round.cashout` and `balance.updated` events.
 
 ## Open issues
 
-- The stubs above must be replaced before the demo. The verify endpoint and panel say so (`valid: false`, "Placeholder").
-- Everything is in memory: a server restart resets balances, history and idempotency keys.
-- A failed round is marked settled without refunding active bets (`engine._abandon_round`, TODO).
+- Everything is in memory: a server restart resets balances, history and idempotency keys. A persistent `Ledger` is the next backend step (see docs/AML_HANDOFF.md).
+- Identity is a client-made guest token; there are no staff accounts or roles.
 - The client resync and live events can race; a stale resync could briefly overwrite newer state.
-- The frontend shell has no chart, rocket, motion, phone Eject dock, session stats or verify panel; see the audit notes in docs/PROMPTS.md.
 - The Python launcher (`py`) is used on Windows because `python` on PATH may be the Microsoft Store stub.

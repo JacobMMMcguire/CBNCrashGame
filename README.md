@@ -1,108 +1,78 @@
 # Ascent: CBN Crash Game
 
-**Launch the rocket, watch the altitude climb, and eject before the mission aborts.** Ascent is a provably fair, space-themed crash game that uses play credits. We built it for the **Canadian Bank Note** sponsor challenge at **ThunderHacks 2026**.
+**Launch the rocket, watch the multiplier climb, and eject before it explodes.** Ascent is a provably fair, space-themed crash game played with play credits. We built it for the **Canadian Bank Note** sponsor challenge at **ThunderHacks 2026**.
 
 > Full brief: [`ThunderHacksII_CBN_Problem_Statement.pdf`](ThunderHacksII_CBN_Problem_Statement.pdf)
 
 ---
 
-## The problem
+## Run it
 
-A **crash game** is a simple, tense wagering game. You place a bet and a multiplier starts climbing from 1.00×: 1.10×, 1.50×, 2.00× and up. You can cash out at any moment and win your bet times the current multiplier. At a random point that nobody can see in advance, the multiplier "crashes". If you have not cashed out by then, you lose your bet. Every round is a choice between taking a small, safe win now and holding on for a bigger one.
+Prerequisite: **Python 3.11 or newer**. Nothing else; the frontend has no build step.
 
-Canadian Bank Note asks teams to build one in any tech stack. A working game is only the starting point. The judges score **architecture, usability, maintainability, extensibility and overall product quality**, and they prefer a thoughtfully designed, polished product over a long list of half-finished features. The randomness also has to be trustworthy, the balance has to be correct, and the code has to be easy to change.
-
-## Our solution
-
-**Ascent** turns the multiplier into a rocket launch. Altitude is the multiplier, cashing out means **ejecting the capsule**, and the crash is a **mission abort**. The picture explains the rules before anyone reads them.
-
-| What the brief asks for | How Ascent does it |
-| --- | --- |
-| Place Bet and Cash Out controls | **Place bet** and **Eject** buttons whose enabled, disabled and active states change with the round |
-| Balance, wager and multiplier on screen | A HUD with the balance in the header, a wager panel, and a large multiplier readout that follows the rocket |
-| Balance tracking | The server owns the balance, stores it as integers, and updates it atomically |
-| Random crash point and outcome | A cryptographically secure, **provably fair** RNG: the server publishes a hash before launch and reveals the seed afterwards so players can verify the round |
-
-How it maps to the rubric:
-- **Presentation:** four round states that are clear at a glance, Mission (dark) and Day (light) themes, and a layout that works from phone to desktop.
-- **Backend:** the server is the authority for the clock, crash point and balance; requests use idempotency keys; rounds can be verified.
-- **Modularity:** one config file and an EN/FR string catalog, with the engine, accounts, transport and UI kept separate.
-- **Creativity & Polish:** the space-mission metaphor, the verify-the-mission panel, and motion that respects reduced-motion settings.
-
-Ascent uses play credits only. It has no deposits or payments, and it includes light responsible-play features: a visible round history, a session summary and an optional reality-check reminder.
-
-## Gameplay flow
-
-1. Player places a wager and starts a round.
-2. The wager is deducted from the balance.
-3. A random crash point is generated between 1.00x and the maximum multiplier.
-4. The multiplier increases in real time.
-5. Cashing out before the crash adds `wager × current multiplier` to the balance.
-6. If the crash happens first, the wager is lost.
-7. The game resets for the next round.
-
-## MVP requirements
-
-- [ ] **Controls**: Place Bet and Cash Out
-- [ ] **Display**: account balance, wager amount, current multiplier
-- [ ] **Balance tracking**
-- [ ] **Crash point & outcome**: random crash point between 1.00x and a configurable maximum, with round resolution
-
-## Judging rubric (50 pts)
-
-| Category | Points | Focus |
+| | Windows (PowerShell) | macOS / Linux / Git Bash |
 | --- | --- | --- |
-| Presentation Layer | 10 | UI quality, responsiveness, theme consistency, usability, gameplay feedback |
-| Backend Layer | 10 | Game logic, account management, RNG, security, reliability |
-| Modularity & Configurability | 10 | Code quality, maintainability, extensibility, localization |
-| Creativity & Polish | 20 | Innovation, visual appeal, engagement, overall impact |
+| Set up and start | `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` | `sh scripts/dev.sh` |
+| Run the tests | `.venv\Scripts\python -m pytest` | `.venv/bin/python -m pytest` |
 
-## Planned enhancements
+The script creates `.venv`, installs `requirements.txt`, checks the environment and starts the server. Then open **<http://127.0.0.1:8001/app/>**.
 
-The brief lists these optional enhancements: auto cash out, configurable betting options, session history, bonus rounds, analytics, accessibility, localization and multiplayer. Our plan, in priority order:
+- **Mock mode:** <http://127.0.0.1:8001/app/?mock=1> runs rounds in the browser from a fixed list (including 24.6× and 104.5× rounds, so every planet flyby can be seen quickly).
+- **Configure:** edit [`config/game.json`](config/game.json) and restart. Invalid values stop the server with a readable message.
+- **Play from a phone on the same Wi-Fi:** set `ASCENT_HOST=0.0.0.0` before starting, then open `http://<your PC's IP>:8001/app/`.
+- **Testing cheat:** with `ASCENT_DEV_CHEATS=1` set, typing `rectangle` during a flight jumps the multiplier ahead by +5.00×. The crash point is untouched, so rounds still verify. Without the variable the cheat does not exist (the endpoint returns 404). Never enable it outside local testing.
 
-| # | Enhancement | Why it matters | Rubric category |
-| --- | --- | --- | --- |
-| 1 | Provably fair RNG (commit hash, reveal seed, verify) | Players can verify that every outcome was fixed before the round started | Backend; Creativity & Polish |
-| 2 | Auto cash out | Lets players set a target in advance; the server enforces it | Backend; Presentation |
-| 3 | Session history and summary | Keeps play transparent and supports responsible play | Presentation; Creativity & Polish |
-| 4 | English and French localization (string catalog) | Shows that every string is configurable; fits a Canadian sponsor | Modularity & Configurability |
-| 5 | Accessibility (reduced motion, keyboard, screen reader) | More people can play, and it is part of UI quality | Presentation |
-| 6 | Configurable betting options | Limits and quick-bet chips come from config | Modularity & Configurability |
-| 7 | Analytics panel (session RTP, biggest win, longest streak) | Engaging and honest numbers about the session | Creativity & Polish |
-| – | Bonus rounds | **Cut** to protect polish | – |
-| – | Multiplayer | **Out of scope** | – |
+## How Ascent meets the brief
+
+| The brief asks for | Ascent |
+| --- | --- |
+| **Controls:** Place Bet and Cash Out | One action button that follows the round: **Place bet** while boarding, **Eject · Cash out 26.20** in flight (also the Space key), **Bet next launch** to queue a bet during a flight |
+| **Display:** balance, wager amount, current multiplier | The read-data panel shows **Balance**, **Your wager**, the live **Multiplier** and the **Payout** you would get now; the multiplier is also the large readout over the rocket |
+| **Balance tracking** | The server owns every balance, keeps it in integer hundredths, debits the wager when the bet is placed and credits `wager × multiplier` on cash out, atomically |
+| **Random crash point and outcome resolution** | A 256-bit seed from a cryptographically secure RNG per round, turned into a crash point with HMAC-SHA256. `P(crash ≥ m) = RTP ÷ m`, the formula Stake, Bustabit and Aviator use, between 1.00× and a configurable maximum (10,000×) |
+| **Gameplay flow 1–7** | Bet during boarding → wager deducted → crash point fixed before launch → multiplier climbs in real time (`m(t) = e^(0.06·t)`) → eject pays `wager × multiplier` → explosion loses the wager → the next round opens automatically |
+
+| Rubric | What to look at |
+| --- | --- |
+| **Presentation (10)** | One screen that never scrolls, on a phone and on a desktop; every state has its own look, sound and screen-reader message; reduced-motion support; keyboard play |
+| **Backend (10)** | The server is the authority for the clock, crash point, cash-out timing and balance; idempotency keys on bet and cash out; auto cash out runs on the server; a failed round refunds active bets; 74 tests including a 200,000-round RTP simulation |
+| **Modularity (10)** | Every tunable value in one config file; English and French string catalogs; the engine, ledger, RNG, fairness, transport and UI are separate modules behind interfaces |
+| **Creativity & Polish (20)** | The launch: smoke, lift-off, clouds, star streaks, a planet flyby every 10× in true order from Earth, an explosion, and an astronaut who tumbles away when you eject; CC0 sound effects |
+
+**Optional enhancements built:** auto cash out (server-side), configurable betting options (limits and quick chips from config), session history and stats, analytics (session result, best eject, wagered), accessibility, localization (EN/FR), and a **provably fair** verifier that recomputes each round in your browser. **Not built:** bonus rounds (cut to protect polish). Rounds are shared, so everyone connected sees the same rocket, but other players' bets are not shown.
+
+**Mission control** (the ☰ button) holds the rules, the odds table, the provably fair verifier and a **Transparency** section that explains each term in the brief's glossary: RNG, RTP, auto cash out and server idempotence.
+
+Ascent uses play credits only. It has no deposits or payments. It includes responsible-play features: a visible round history, session stats, an odds table and a reality-check reminder every 30 minutes. A player who runs out can refill their play credits.
 
 ## Tech stack
 
-| Layer | Choice | Status |
-| --- | --- | --- |
-| Server language / framework | Python 3.11+, FastAPI, served by uvicorn | Skeleton running |
-| Real-time channel | WebSocket (`/api/v1/ws`) | Skeleton running |
-| Frontend | Plain HTML, CSS and JavaScript ES modules, no build step | Shell running |
-| Storage | In memory (a stub; persistence is TBD) | Stub |
-| Testing | pytest + httpx (FastAPI TestClient) | 63 tests |
-| Hosting | TBD | Open, see [HANDOFF](docs/HANDOFF.md) |
-
-The crash-point RNG, the provably fair commitment and the ledger are **SKELETON ONLY stubs**: not random, not fair, not persistent. See [docs/SKELETON.md](docs/SKELETON.md) for what is real, what is stubbed and how to replace each stub.
+| Layer | Choice |
+| --- | --- |
+| Server | Python 3.11+, FastAPI, uvicorn |
+| Real-time | WebSocket (`/api/v1/ws`) with reconnect and resync |
+| Frontend | Plain HTML, CSS and JavaScript ES modules; the launch is drawn on a 2D canvas; sound through Web Audio |
+| Storage | In memory: balances and history reset when the server restarts |
+| Tests | pytest + httpx (FastAPI TestClient), 74 tests |
 
 ## Project structure
 
 ```
 CBNCrashGame/
-├── README.md               # this file
-├── PRODUCT.md              # product truth: users, goals, principles
-├── DESIGN.md               # visual system: palette, type, components
-├── docs/                   # scope, workflow, contract, skeleton, handoff, prompt log
 ├── config/game.json        # every tunable value
 ├── contract/               # JSON examples and schemas for every request, response and event
 ├── backend/
 │   ├── app/                # config, engine, rng, fairness, ledger, api, realtime, main
 │   └── tests/              # pytest suite
 ├── frontend/
-│   ├── mock_frontend.html  # static design mock
-│   ├── index.html          # the game shell (served at /app/)
-│   ├── css/  js/  locales/ # tokens, ES modules, en/fr string catalogs
+│   ├── index.html          # the game (served at /app/)
+│   ├── css/                # tokens.css, app.css
+│   ├── js/                 # main, store, api, realtime, live, audio, fairness, mock
+│   │   ├── components/     # stage, data, controls, menu
+│   │   └── scene/          # scene (the launch), art (vector drawings), milestones (planets)
+│   ├── locales/            # en.json, fr.json
+│   └── assets/sfx/         # sound effects (CC0)
+├── docs/                   # contract, skeleton notes, handoff, AML handoff, prompt log
 └── scripts/                # dev.ps1, dev.sh, check_env.py, export_schemas.py
 ```
 
@@ -110,28 +80,12 @@ CBNCrashGame/
 
 | Document | What it covers |
 | --- | --- |
-| [docs/HANDOFF.md](docs/HANDOFF.md) | **Start here.** Read order, decisions, open items, first tasks |
-| [docs/SCOPE.md](docs/SCOPE.md) | MVP, stretch, how the demo covers the rubric, what we will not build |
-| [docs/GAME_CONTRACT.md](docs/GAME_CONTRACT.md) | Server rules, state machine, config, API and events |
-| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Build order with inputs, outputs and "done when" |
-| [docs/SKELETON.md](docs/SKELETON.md) | How the running skeleton is organised, what is stubbed, run and test commands, proposed contract changes |
-| [docs/PROMPTS.md](docs/PROMPTS.md) | Log of AI-assisted prompts |
-| [PRODUCT.md](PRODUCT.md) | Users, purpose, principles, success criteria |
-| [DESIGN.md](DESIGN.md) | Palette, typography, spacing, HUD components |
-| [frontend/mock_frontend.html](frontend/mock_frontend.html) | Static mock of the game screen (open it by double-clicking) |
-
-## Getting started
-
-1. **Prerequisites:** Python 3.11 or newer. Nothing else; the frontend has no build step.
-2. **Install and run:** one script creates `.venv`, installs `requirements.txt`, checks the environment and starts the server on port 8001.
-   - Windows: `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1`
-   - macOS / Linux / Git Bash: `sh scripts/dev.sh`
-3. **Configure:** edit `config/game.json` and restart. Invalid values stop the server with a readable message.
-4. **Play:** open <http://127.0.0.1:8001/app/>. Add `?mock=1` to run fake rounds in the browser with no server game logic.
-5. **Run the tests:** `.venv\Scripts\python -m pytest` (Windows) or `.venv/bin/python -m pytest`.
-6. **Check the environment:** `.venv\Scripts\python scripts\check_env.py` reports missing packages, or packages blocked by Windows Application Control, in plain words.
-
-The design mock still opens directly from disk: double-click `frontend/mock_frontend.html`.
+| [docs/GAME_CONTRACT.md](docs/GAME_CONTRACT.md) | Server rules, state machine, config, crash-point formula, API and events |
+| [docs/SKELETON.md](docs/SKELETON.md) | How the code is organised, what is real and what is still in memory, run and test commands, contract changes |
+| [DESIGN.md](DESIGN.md) | Palette, type, layout, motion and sound |
+| [docs/AML_HANDOFF.md](docs/AML_HANDOFF.md) | For the AML export work: what the game stores today and what is missing |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | Original team handoff and demo checklist |
+| [PRODUCT.md](PRODUCT.md) | Users, purpose, principles |
 
 ## Credits
 

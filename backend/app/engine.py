@@ -216,8 +216,18 @@ class RoundEngine:
                 self._abandon_round()
 
     def _abandon_round(self) -> None:
-        # TODO(engine owner): decide how a failed round refunds active bets.
+        """A round failed: refund every bet still riding, then close the round.
+
+        A refund is a cash out at 1.00x, so it pays back exactly the wager and
+        reaches the player through the usual round.cashout and balance.updated.
+        """
         r = self.round
+        for bet in self.ledger.bets_for_round(r.round_id):
+            if bet.status == "active":
+                try:
+                    self._apply_cash_out(bet.account_id, bet.round_id, 100, auto=False)
+                except Exception:  # keep refunding the others
+                    log.exception("%s: refund of %s failed", r.round_id, bet.bet_id)
         r.state = SETTLED
         self._finished[r.round_id] = r
 
@@ -267,6 +277,20 @@ class RoundEngine:
             raise GameError("TOO_LATE", "Round crashed before cash-out was received.")
         bet = self._apply_cash_out(account_id, round_id, self._multiplier_at(now), auto=False)
         return bet, self.ledger.get_account(account_id).balance
+
+    def refill(self, account_id: str) -> int:
+        """Top a broke play account back up to ``startingBalance``.
+
+        Allowed only when the balance is below the minimum bet and no bet is
+        riding on the current round, so it cannot be used to top up mid-game.
+        """
+        balance = self.ledger.get_account(account_id).balance
+        bet = self.ledger.get_bet(account_id, self.round.round_id)
+        if balance >= self.config.min_bet_units or (bet is not None and bet.status == "active"):
+            raise GameError("REFILL_NOT_NEEDED", "Play credits can be refilled only when the balance is below the minimum bet.")
+        balance = self.ledger.refill(account_id, self.config.starting_balance_units).balance
+        self._emit_private(account_id, "balance.updated", BalanceData(balance=format_credits(balance), reason="refill"))
+        return balance
 
     # ---------- Testing aid (only reachable when dev cheats are enabled) ----------
 

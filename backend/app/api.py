@@ -89,6 +89,16 @@ async def get_account(request: Request, account_id: str = Depends(current_accoun
             "language": acc.language}
 
 
+@router.post("/account/refill", response_model=AccountResponse)
+async def refill_account(request: Request, account_id: str = Depends(current_account)):
+    """Play credits only: refill a broke account to startingBalance (409 REFILL_NOT_NEEDED otherwise)."""
+    svc = services(request)
+    svc.engine.refill(account_id)
+    acc = svc.ledger.get_account(account_id)
+    return {"accountId": acc.account_id, "balance": format_credits(acc.balance), "currency": "credits",
+            "language": acc.language}
+
+
 @router.get("/rounds/current", response_model=CurrentRoundResponse, response_model_exclude_unset=True)
 async def get_current_round(request: Request, account_id: str = Depends(current_account)):
     return services(request).engine.snapshot(account_id)

@@ -3,10 +3,11 @@
 //
 // Browsers only allow audio after a user gesture, so nothing loads or plays
 // until the first tap or key press. The engine is a looping clip whose pitch
-// and brightness follow the climb speed; everything else is a one-shot.
+// and brightness follow the climb speed (thrusterFire_004, soft-saturated for
+// body); everything else is a one-shot.
 
 const CLIPS = {
-  engine: 0.32, ignition: 0.5, explosion: 0.75, "explosion-low": 0.9, flyby: 0.3,
+  engine: 0.58, ignition: 0.5, explosion: 0.75, "explosion-low": 0.9, flyby: 0.3,
   tick: 0.3, bet: 0.45, cashout: 0.6, error: 0.35, click: 0.18,
 };
 const MASTER = 0.8;
@@ -23,7 +24,14 @@ export function createAudio({ enabled: startEnabled = true } = {}) {
       ctx = new AC();
       master = ctx.createGain();
       master.gain.value = enabled ? MASTER : 0;
-      master.connect(ctx.destination);
+      // A limiter on the way out, so the engine, ignition and explosion never clip together.
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -8;
+      limiter.knee.value = 6;
+      limiter.ratio.value = 12;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.2;
+      master.connect(limiter).connect(ctx.destination);
       for (const name of Object.keys(CLIPS)) {
         fetch(new URL(`../assets/sfx/${name}.mp3`, import.meta.url))
           .then((r) => r.arrayBuffer())

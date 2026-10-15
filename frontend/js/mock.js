@@ -168,6 +168,12 @@ export async function createMockBackend() {
       cashOutAt(multiplierAt(now), false);
       return later(cashOutResponse());
     },
+    refill() {
+      if (balance >= units(config.minBet) || bet?.status === "active") return fail("REFILL_NOT_NEEDED", "Not broke.");
+      balance = units(config.startingBalance);
+      emit("balance.updated", { balance: credits(balance), reason: "refill" });
+      return later({ ...clone(tpl.responses.account), accountId: "acc_mock", balance: credits(balance) });
+    },
     devSkip() {
       if (round.state !== "in-flight") return fail("ROUND_NOT_IN_FLIGHT", "Not in flight.");
       // Same as the server: move the launch back so the multiplier rises by 5.00x.

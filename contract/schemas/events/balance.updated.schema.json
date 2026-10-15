@@ -16,7 +16,8 @@
         "reason": {
           "enum": [
             "bet",
-            "cashout"
+            "cashout",
+            "refill"
           ],
           "title": "Reason",
           "type": "string"

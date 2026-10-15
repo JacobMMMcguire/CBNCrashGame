@@ -152,8 +152,8 @@
   "errors.UNKNOWN": "Une erreur est survenue. Réessayez.",
 
   "sound.toggle": "Effets sonores",
-  "data.position": "Position",
-  "data.multiplier": "Multiplicateur",
+  "data.position": "Votre mise",
+  "data.multiplier": "Multipl.",
   "data.payout": "Gain",
   "pos.auto": "Auto à {a}",
   "pos.manual": "Éjection manuelle",
@@ -187,5 +187,10 @@
 
   "cheat.skipped": "Code de test : saut jusqu'à {m}×",
   "cheat.notFlying": "Le code de test ne fonctionne que pendant le vol.",
-  "cheat.off": "Les codes de test sont désactivés. Lancez le serveur avec ASCENT_DEV_CHEATS=1."
+  "cheat.off": "Les codes de test sont désactivés. Lancez le serveur avec ASCENT_DEV_CHEATS=1.",
+
+  "btn.refill": "Recharger les crédits",
+  "btn.refillSub": "Plus de crédits · retour à {b}",
+  "toast.refilled": "Crédits de jeu rechargés : {b}",
+  "errors.REFILL_NOT_NEEDED": "La recharge n'est possible que si vous ne pouvez plus payer la mise minimale."
 }

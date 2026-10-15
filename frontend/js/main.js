@@ -8,7 +8,7 @@
 import { ApiError, createApi, guestToken } from "./api.js";
 import { createRealtime, websocketUrl } from "./realtime.js";
 import { createStore, initialState } from "./store.js";
-import { parseCreditsInput, parseMultiplierInput, setLanguage, t } from "./i18n.js";
+import { formatCredits, parseCreditsInput, parseMultiplierInput, setLanguage, t } from "./i18n.js";
 import { verifyRound } from "./fairness.js";
 import { createAudio } from "./audio.js";
 import { mountStage } from "./components/stage.js";
@@ -202,6 +202,17 @@ async function boot() {
         store.set({ pending: null });
       }
     },
+    async refill() {
+      store.set({ pending: "refill", error: null });
+      try {
+        const r = await api.refill();
+        store.set({ balance: r.balance, queued: false, notice: { text: t("toast.refilled", { b: formatCredits(r.balance) }), n: Date.now() } });
+      } catch (err) {
+        store.set({ error: errorCode(err) });
+      } finally {
+        store.set({ pending: null });
+      }
+    },
     setQueued(queued) {
       store.set({ queued, error: null });
     },
@@ -248,9 +259,14 @@ async function boot() {
   };
 
   const audio = createAudio({ enabled: pref.get("ascent-sound") !== "0" });
-  // Soft click for the small controls (chips, steppers, toggles, language)
   document.addEventListener("click", (e) => {
+    // Soft click for the small controls (chips, steppers, toggles, language)
     if (e.target.closest(".chip, .stepper__btn, .seg button, .switch, .pill")) audio.play("click");
+    // A mouse click leaves focus on the button, and Space would then press it again
+    // instead of ejecting. Release focus after mouse clicks only (detail > 0), so
+    // keyboard users keep their place.
+    const button = e.target.closest("button");
+    if (button && e.detail > 0 && !button.closest("dialog")) button.blur();
   });
 
   // Cheat code for testing: type "rectangle" anywhere outside a text field.

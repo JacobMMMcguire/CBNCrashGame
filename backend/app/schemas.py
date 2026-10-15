@@ -198,7 +198,7 @@ class SettledData(Wire):
 
 class BalanceData(Wire):
     balance: Credits
-    reason: Literal["bet", "cashout"]
+    reason: Literal["bet", "cashout", "refill"]
 
 
 class HistoryEntry(Wire):

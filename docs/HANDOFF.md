@@ -21,7 +21,7 @@ You are joining **Ascent**, our crash game for the Canadian Bank Note challenge 
 - **Fairness:** provably fair RNG (commit hash, reveal seed, verify). This is the first enhancement after the MVP.
 - **Safety:** idempotency keys on bet and cash out; balances stored as integer minor units.
 - **Config:** every tunable value lives in one config file. UI strings live in an EN/FR catalog.
-- **Look:** deep-space "Mission" theme and a "Day" theme with one amber accent, as shown in the mock and DESIGN.md.
+- **Look:** a flat-vector night launch (one dark look), described in DESIGN.md. The early "Day" theme and `mock_frontend.html` wireframe are superseded.
 - **Out of scope:** multiplayer, real money, bonus rounds, native apps.
 
 ## 3. Still TBD
@@ -46,14 +46,14 @@ You are joining **Ascent**, our crash game for the Canadian Bank Note challenge 
 
 ## 5. Definition of done for the demo
 
-- [ ] All four MVP requirements work end to end against the real server.
-- [ ] A full round (bet, climb, eject or abort, reset) runs with no console errors.
-- [ ] Double-clicking Eject pays once, and a cash out after the crash is rejected; both are shown live.
-- [ ] At least one round is verified from its revealed seed in the UI.
-- [ ] The game works on a phone (390 px) and a laptop, in both themes, in English and French.
-- [ ] Reduced motion and keyboard-only play both work.
-- [ ] Changing a config value (for example `maxMultiplier`) changes behaviour with no code edit.
-- [ ] RNG and wallet tests pass, and the RTP simulation is within tolerance.
+- [x] All four MVP requirements work end to end against the real server.
+- [x] A full round (bet, climb, eject or abort, reset) runs with no console errors.
+- [x] Double-clicking Eject pays once, and a cash out after the crash is rejected; both are shown live.
+- [x] At least one round is verified from its revealed seed in the UI.
+- [x] The game works on a phone (390 px) and a laptop, in English and French.
+- [x] Reduced motion and keyboard-only play both work.
+- [x] Changing a config value (for example `maxMultiplier`) changes behaviour with no code edit.
+- [x] RNG and wallet tests pass, and the RTP simulation is within tolerance.
 - [ ] Two rehearsals have been completed within the time limit, and a backup recording exists.
 - [ ] README "Getting started" lets a stranger run the game in under 5 minutes.
 

@@ -6,6 +6,7 @@
 //   eject    in flight with an active bet                 -> Eject, labelled with the live payout
 //   queue    in flight / after the crash, no active bet   -> Bet next launch (placed when boarding opens)
 //   cancel   a bet is queued for the next launch          -> Cancel it
+//   refill   balance below the minimum bet, nothing riding -> Refill play credits
 //
 // The server validates every bet again; the checks here only explain why the
 // button is disabled.
@@ -40,6 +41,7 @@ function modeOf(s) {
   if (s.pending) return "sending";
   if (st === "in-flight" && bet?.status === "active") return "eject";
   if (st === "betting" && bet) return "waiting";
+  if (s.balance !== null && toUnits(s.balance) < toUnits(s.config.minBet)) return "refill";
   if (st === "betting" && Date.parse(s.round.closesAt) > Date.now() + s.clockOffsetMs) return "bet";
   return s.queued ? "cancel" : "queue";
 }
@@ -86,6 +88,7 @@ export function mountControls(store, actions) {
       case "eject": return actions.cashOut();
       case "queue": return actions.setQueued(true);
       case "cancel": return actions.setQueued(false);
+      case "refill": return actions.refill();
     }
   }
   form.addEventListener("submit", (e) => {
@@ -130,7 +133,7 @@ export function mountControls(store, actions) {
     const valid = wagerOk && affordable && autoOk;
 
     // Inputs lock while a bet is on board, queued, or being sent.
-    const locked = ["eject", "waiting", "cancel", "sending"].includes(mode) || Boolean(bet && s.round.state === "betting");
+    const locked = ["eject", "waiting", "cancel", "sending", "refill"].includes(mode) || Boolean(bet && s.round.state === "betting");
     for (const el of [wager, minus, plus, autoOn]) el.disabled = locked;
     auto.disabled = locked || !s.autoOn;
     chips.querySelectorAll(".chip").forEach((c) => {
@@ -172,6 +175,10 @@ export function mountControls(store, actions) {
         m = t("btn.queue");
         sb = (wagerOk ? t("btn.placeSub", { w: formatCredits(w) }) : "") + autoSuffix;
         disabled = !valid;
+        break;
+      case "refill":
+        m = t("btn.refill");
+        sb = t("btn.refillSub", { b: formatCredits(cfg.startingBalance) });
         break;
       case "cancel":
         m = t("btn.cancel");

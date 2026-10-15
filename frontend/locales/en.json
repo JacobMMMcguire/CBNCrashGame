@@ -85,7 +85,7 @@
   "btn.waiting": "Bet placed",
   "btn.waitingSub": "{w} on board",
   "btn.eject": "Eject",
-  "btn.ejectSub": "Collect {v}",
+  "btn.ejectSub": "Cash out {v}",
   "btn.queue": "Bet next launch",
   "btn.cancel": "Cancel next bet",
   "btn.cancelSub": "{w} queued for the next launch",
@@ -152,7 +152,7 @@
   "errors.UNKNOWN": "Something went wrong. Try again.",
 
   "sound.toggle": "Sound effects",
-  "data.position": "Position",
+  "data.position": "Your wager",
   "data.multiplier": "Multiplier",
   "data.payout": "Payout",
   "pos.auto": "Auto at {a}",
@@ -187,5 +187,10 @@
 
   "cheat.skipped": "Test cheat: skipped ahead to {m}×",
   "cheat.notFlying": "Test cheat works only while the rocket is flying.",
-  "cheat.off": "Test cheats are off. Start the server with ASCENT_DEV_CHEATS=1."
+  "cheat.off": "Test cheats are off. Start the server with ASCENT_DEV_CHEATS=1.",
+
+  "btn.refill": "Refill play credits",
+  "btn.refillSub": "Out of credits · back to {b}",
+  "toast.refilled": "Play credits refilled: {b}",
+  "errors.REFILL_NOT_NEEDED": "Play credits can be refilled only when you cannot afford the minimum bet."
 }
