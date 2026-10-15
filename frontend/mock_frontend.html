@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="en" data-theme="mission">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascent · Game Screen Mock</title>
+<meta name="description" content="Static design mock of the Ascent crash game screen. Sample data only; no game logic.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ---------- Tokens ---------- */
+:root {
+  --font-ui: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  --radius-panel: 14px; --radius-control: 10px; --radius-chip: 999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms; --dur: 260ms;
+}
+:root[data-theme="mission"] {
+  color-scheme: dark;
+  --bg: #090F1F;
+  --bg-stage: #0B1326;
+  --surface: #101930;
+  --surface-2: #17213C;
+  --line: #24314F;
+  --line-strong: #5B6D96;
+  --ink: #EEF2FA;
+  --ink-2: #B3BDD3;
+  --ink-3: #8F9AB5;
+  --accent: #FFB547;
+  --accent-line: #FFB547;
+  --accent-wash: rgba(255, 181, 71, 0.14);
+  --on-accent: #1B1305;
+  --win: #4BE3A4;
+  --win-wash: rgba(75, 227, 164, 0.12);
+  --abort: #FF7D6E;
+  --abort-wash: rgba(255, 125, 110, 0.12);
+  --grid: #18233E;
+  --grid-major: #283759;
+  --star: #C9D3EA;
+  --rocket: #EEF2FA;
+}
+:root[data-theme="day"] {
+  color-scheme: light;
+  --bg: #E8EDF4;
+  --bg-stage: #F7F9FC;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2F8;
+  --line: #CBD3E1;
+  --line-strong: #7D8AA3;
+  --ink: #0B1430;
+  --ink-2: #34425F;
+  --ink-3: #4F5B78;
+  --accent: #F4A53C;
+  --accent-line: #8F5200;
+  --accent-wash: rgba(244, 165, 60, 0.16);
+  --on-accent: #1B1305;
+  --win: #06774A;
+  --win-wash: rgba(6, 119, 74, 0.10);
+  --abort: #BE3326;
+  --abort-wash: rgba(190, 51, 38, 0.09);
+  --grid: #E3E8F1;
+  --grid-major: #C7D0DF;
+  --star: #6A7895;
+  --rocket: #0B1430;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+}
+::selection { background: var(--accent); color: var(--on-accent); }
+input { caret-color: var(--accent-line); }
+:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; border-radius: 6px; }
+h1, h2, h3, p, ol, ul, dl, dd { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent-line); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip {
+  position: absolute; left: var(--space-4); top: -60px; z-index: 10;
+  background: var(--accent); color: var(--on-accent); padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control); font-weight: 700; text-decoration: none;
+}
+.skip:focus { top: var(--space-2); }
+.icon { width: 1.15em; height: 1.15em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Small catalogue labels: condensed caps, the atlas voice */
+.label {
+  font-stretch: 78%;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- Mock review bar (not part of the product) ---------- */
+.mockbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px dashed var(--line-strong);
+  background: var(--surface-2);
+  font-size: 0.875rem;
+}
+.mockbar__note { color: var(--ink-2); display: flex; align-items: center; gap: var(--space-2); }
+.mockbar__note strong { color: var(--ink); font-weight: 700; }
+
+/* Segmented control (state switcher, language, theme) */
+.seg {
+  display: inline-flex; padding: 3px; gap: 2px;
+  border: 1px solid var(--line); border-radius: var(--radius-control);
+  background: var(--surface);
+}
+.seg button {
+  border: 0; background: transparent; color: var(--ink-2);
+  padding: 6px 12px; min-height: 36px; border-radius: 7px;
+  font-weight: 600; font-size: 0.875rem; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.seg button:hover { color: var(--ink); background: var(--surface-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* ---------- Header ---------- */
+.top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  max-width: 1440px; margin: 0 auto;
+}
+.brand { display: flex; align-items: center; gap: var(--space-3); margin-right: auto; }
+.brand svg { width: 36px; height: 36px; }
+.brand__name { font-size: 1.375rem; font-weight: 800; font-stretch: 112%; letter-spacing: -0.02em; line-height: 1; }
+.brand__sub { display: block; margin-top: 3px; }
+.balance { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.balance__value { font-size: 1.5rem; font-weight: 750; font-stretch: 105%; letter-spacing: -0.01em; }
+.balance__unit { font-size: 0.875rem; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
+.prefs { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+/* ---------- Layout ---------- */
+.game {
+  max-width: 1440px; margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-6);
+  display: grid; gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-areas:
+    "stage side"
+    "log   side"
+    "stats side";
+  grid-template-rows: auto auto 1fr;
+  align-items: start;
+}
+.side     { grid-area: side; display: flex; flex-direction: column; gap: var(--space-4); }
+.stage    { grid-area: stage; height: clamp(540px, calc(100vh - 190px), 760px); }
+.controls { grid-area: controls; }
+.log      { grid-area: log; }
+.fair     { grid-area: fair; }
+.stats    { grid-area: stats; }
+.stats dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-5);
+}
+.panel__title { font-size: 1rem; font-weight: 700; font-stretch: 100%; letter-spacing: -0.005em; }
+.panel__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+
+/* ---------- Stage ---------- */
+.stage {
+  position: relative; overflow: hidden;
+  background: var(--bg-stage);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  display: flex; flex-direction: column;
+}
+.readout {
+  position: relative; z-index: 2;
+  padding: var(--space-5) var(--space-5) 0;
+  display: grid; gap: var(--space-2);
+}
+.phase {
+  display: inline-flex; align-items: center; gap: 6px; justify-self: start;
+  padding: 4px 10px 4px 8px; border-radius: var(--radius-chip);
+  border: 1px solid var(--line-strong); color: var(--ink-2);
+  font-size: 0.8125rem; font-weight: 650; font-stretch: 90%; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.mult {
+  font-size: clamp(3.25rem, 7.4vw, 6rem);
+  font-weight: 780; font-stretch: 118%;
+  letter-spacing: -0.03em; line-height: 0.95;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 0.18em;
+}
+.mult .icon { width: 0.5em; height: 0.5em; stroke-width: 2.2; }
+.mult__x { font-weight: 500; font-stretch: 100%; color: var(--ink-3); margin-left: 0.02em; }
+.status { display: flex; align-items: flex-start; gap: var(--space-2); max-width: 60ch; font-size: 1.0625rem; color: var(--ink-2); min-height: 3em; }
+.status .icon { margin-top: 3px; }
+.status strong { color: var(--ink); font-weight: 700; }
+
+/* State colour: always paired with icon + text */
+[data-state="ejected"] .phase { border-color: var(--win); color: var(--win); background: var(--win-wash); }
+[data-state="ejected"] .mult { color: var(--win); }
+[data-state="aborted"] .phase { border-color: var(--abort); color: var(--abort); background: var(--abort-wash); }
+[data-state="aborted"] .mult { color: var(--abort); }
+[data-state="flying"] .phase { border-color: var(--accent-line); color: var(--accent-line); background: var(--accent-wash); }
+[data-state="ready"] .mult { color: var(--ink-3); }
+
+.window { display: flex; align-items: center; gap: var(--space-3); font-size: 0.875rem; color: var(--ink-2); white-space: nowrap; }
+.window__bar { flex: 1; min-width: 60px; height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.window__bar span { display: block; height: 100%; width: 62%; background: var(--accent-line); }
+[data-state]:not([data-state="ready"]) .window { display: none; }
+
+/* The plot owns the stage; the readout floats in its empty upper-left sky */
+.readout { position: absolute; top: 0; left: 0; max-width: min(62ch, 72%); pointer-events: none; }
+.chart { position: absolute; inset: 0; }
+.chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.chart text { font-family: var(--font-ui); font-stretch: 78%; font-weight: 600; letter-spacing: 0.08em; font-size: var(--fs, 12px); }
+.g-minor { stroke: var(--grid); stroke-width: 1; }
+.g-major { stroke: var(--grid-major); stroke-width: 1; }
+.g-label { fill: var(--ink-3); }
+.star { fill: var(--star); }
+.trail { fill: none; stroke: var(--accent-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.trail-area { fill: url(#area); }
+.cat-mark { fill: var(--ink); }
+.cat-label { fill: var(--ink-2); paint-order: stroke; stroke: var(--bg-stage); stroke-width: 5px; stroke-linejoin: round; }
+.ev-win { fill: none; stroke: var(--win); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ev-win-fill { fill: var(--win); }
+.ev-abort { fill: var(--abort); }
+.ev-label-win { fill: var(--win); paint-order: stroke; stroke: var(--bg-stage); stroke-width: 5px; }
+.ev-label-abort { fill: var(--abort); paint-order: stroke; stroke: var(--bg-stage); stroke-width: 5px; }
+.rocket-body { fill: var(--rocket); }
+.rocket-fin { fill: var(--ink-3); }
+.rocket-window { fill: var(--bg-stage); stroke: var(--accent-line); stroke-width: 1.6; }
+.rocket-flame { fill: var(--accent); transform-origin: 0 12px; }
+.pad { stroke: var(--line-strong); stroke-width: 2; }
+[data-state="flying"] .rocket-flame { animation: flicker 160ms steps(2) infinite alternate; }
+@keyframes flicker { from { transform: scaleY(0.82); } to { transform: scaleY(1.12); } }
+[data-state="ready"] .rocket-flame { display: none; }
+
+/* ---------- Controls ---------- */
+.field { display: grid; gap: 6px; margin-bottom: var(--space-4); }
+.field__label { font-weight: 650; font-size: 0.9375rem; }
+.input {
+  display: flex; align-items: center;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-control);
+  background: var(--bg-stage);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.input:focus-within { border-color: var(--accent-line); outline: 2px solid var(--accent-line); outline-offset: 1px; }
+.input input {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  padding: 12px 14px; font-size: 1.125rem; font-weight: 650; font-variant-numeric: tabular-nums;
+}
+.input input::placeholder { color: var(--ink-3); font-weight: 500; }
+.input__unit { padding-right: 14px; color: var(--ink-3); font-size: 0.9375rem; }
+.hint { font-size: 0.8125rem; color: var(--ink-3); }
+.input:has(input:disabled) { border-style: dashed; opacity: 0.75; }
+
+.chips { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: var(--space-5); }
+.chip {
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink);
+  border-radius: var(--radius-chip); padding: 6px 0; min-height: 40px;
+  font-weight: 650; font-size: 0.9375rem;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.chip:hover:not(:disabled) { background: var(--surface-2); }
+.chip[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent-line); color: var(--ink); }
+.chip:disabled { border-style: dashed; color: var(--ink-3); cursor: not-allowed; }
+
+.actions { display: grid; gap: var(--space-3); }
+.btn {
+  display: grid; justify-items: center; align-content: center; gap: 2px;
+  width: 100%; min-height: 60px; padding: 10px 16px;
+  border-radius: var(--radius-control); border: 1px solid transparent;
+  font-size: 1.125rem; font-weight: 750; font-stretch: 105%; letter-spacing: 0.005em;
+  transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.btn__sub { font-size: 0.875rem; font-weight: 550; font-stretch: 100%; display: inline-flex; align-items: center; gap: 6px; }
+.btn--go { background: var(--accent); color: var(--on-accent); box-shadow: 0 6px 16px -8px rgba(4, 8, 20, 0.45); }
+.btn--go:hover { background: color-mix(in srgb, var(--accent) 88%, white); }
+.btn--go:active { transform: translateY(1px); box-shadow: 0 2px 6px -3px rgba(4, 8, 20, 0.45); }
+.btn:disabled {
+  background: transparent; color: var(--ink-3); border: 1px dashed var(--line-strong);
+  box-shadow: none; cursor: not-allowed; font-size: 1rem;
+}
+.btn:disabled.is-done-win { color: var(--win); border: 1px solid var(--win); background: var(--win-wash); border-style: solid; }
+.btn:disabled.is-done-abort { color: var(--abort); border: 1px solid var(--abort); background: var(--abort-wash); border-style: solid; }
+#ejectBtn:not(:disabled) { min-height: 76px; font-size: 1.375rem; }
+.kbd-hint { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-size: 0.8125rem; color: var(--ink-3); }
+kbd {
+  font-family: var(--font-ui); font-size: 0.75rem; font-weight: 650;
+  padding: 1px 7px; border: 1px solid var(--line-strong); border-radius: 5px; color: var(--ink-2);
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+}
+.log__strip, .entry { position: relative; }
+
+/* ---------- Mission log ---------- */
+.log__strip {
+  display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2);
+  scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+}
+.log__strip::-webkit-scrollbar { height: 6px; }
+.log__strip::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+.entry {
+  flex: none; min-width: 84px;
+  display: grid; gap: 2px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-control);
+  background: var(--bg-stage);
+}
+.entry__crash { font-weight: 750; font-size: 1.0625rem; font-stretch: 108%; }
+.entry--low .entry__crash { color: var(--ink-2); }
+.entry--high .entry__crash { color: var(--accent-line); }
+.entry__you { display: flex; align-items: center; gap: 4px; font-size: 0.8125rem; font-weight: 600; }
+.entry__you--win { color: var(--win); }
+.entry__you--loss { color: var(--abort); }
+.entry__you--none { color: var(--ink-3); font-weight: 500; }
+.entry--new { border-color: var(--ink-3); }
+
+/* ---------- Provably fair ---------- */
+.fair dl { display: grid; gap: var(--space-3); }
+.fair dt { margin-bottom: 2px; }
+.hash {
+  font-family: var(--font-data); font-size: 0.8125rem; line-height: 1.45;
+  word-break: break-all; color: var(--ink-2);
+}
+.sealed { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 0.875rem; }
+.fair__verify { display: inline-flex; align-items: center; gap: 6px; margin-top: var(--space-4); font-weight: 650; }
+.fair details { margin-top: var(--space-3); border-top: 1px solid var(--line); padding-top: var(--space-3); }
+.fair summary { cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: 0.9375rem; }
+.fair summary:hover { color: var(--ink); }
+.fair details ol { list-style: decimal; padding-left: 1.2em; margin-top: var(--space-2); display: grid; gap: 6px; font-size: 0.875rem; color: var(--ink-2); }
+
+/* ---------- Session ---------- */
+.stats dl { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4) var(--space-3); }
+.stats dd { font-size: 1.25rem; font-weight: 750; font-stretch: 105%; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.stats .pos { color: var(--win); }
+.reality { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--ink-2); }
+
+.foot { max-width: 1440px; margin: 0 auto; padding: 0 var(--space-5) var(--space-6); font-size: 0.8125rem; color: var(--ink-3); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "stage stage"
+      "controls controls"
+      "log log"
+      "fair stats";
+  }
+  .side { display: contents; }
+  .stage { height: 520px; }
+  .stats dl { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  .top { padding: var(--space-3) var(--space-4); }
+  .prefs { width: 100%; justify-content: space-between; }
+  .game {
+    padding: 0 var(--space-4) var(--space-5); gap: var(--space-3);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "stage" "controls" "log" "fair" "stats";
+  }
+  .foot { padding: 0 var(--space-4) var(--space-5); }
+  .panel { padding: var(--space-4); }
+  .stage { height: auto; }
+  .readout { position: static; max-width: none; padding: var(--space-4) var(--space-4) 0; }
+  .chart { position: relative; inset: auto; height: 240px; }
+  /* In flight, Eject docks to the bottom edge so it is always under the thumb */
+  [data-state="flying"] #ejectBtn {
+    position: fixed; left: var(--space-4); right: var(--space-4); width: auto;
+    bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px)); z-index: 5;
+    box-shadow: 0 10px 28px -8px rgba(4, 8, 20, 0.6);
+  }
+  [data-state="flying"] { padding-bottom: 100px; }
+  .status { font-size: 1rem; }
+  .balance__value { font-size: 1.25rem; }
+  .mockbar { padding: var(--space-2) var(--space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; }
+}
+</style>
+</head>
+<body data-state="ready">
+<a class="skip" href="#controls" data-i18n="skip">Skip to flight controls</a>
+
+<!-- Review tooling for this mock only: not part of the product UI -->
+<div class="mockbar" role="region" aria-label="Mock review controls" data-i18n-attr="aria-label:mockRegion">
+  <p class="mockbar__note">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+    <span><strong data-i18n="mockTitle">Design mock</strong> · <span data-i18n="mockNote">sample data, no game logic</span></span>
+  </p>
+  <div class="seg" role="group" aria-label="Preview state" data-i18n-attr="aria-label:previewState" id="stateSwitch">
+    <button type="button" data-set-state="ready" aria-pressed="true" data-i18n="sReady">Ready</button>
+    <button type="button" data-set-state="flying" aria-pressed="false" data-i18n="sFlying">Flying</button>
+    <button type="button" data-set-state="ejected" aria-pressed="false" data-i18n="sEjected">Cashed out</button>
+    <button type="button" data-set-state="aborted" aria-pressed="false" data-i18n="sAborted">Crashed</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <!-- Original mark: an ascent arc leaving the horizon, ending in a catalogued star -->
+    <svg viewBox="0 0 36 36" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="35" height="35" rx="9" fill="var(--surface-2)" stroke="var(--line)"/>
+      <path d="M7 27 H29" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M9 27 C17 26 22 20 25.5 10.5" fill="none" stroke="var(--accent-line)" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M26.6 5.2 L27.5 8.3 L30.6 9.2 L27.5 10.1 L26.6 13.2 L25.7 10.1 L22.6 9.2 L25.7 8.3 Z" fill="var(--ink)"/>
+    </svg>
+    <div>
+      <h1 class="brand__name">Ascent</h1>
+      <span class="label brand__sub" data-i18n="playOnly">Play credits only</span>
+    </div>
+  </div>
+
+  <div class="balance" aria-live="polite">
+    <span class="label" data-i18n="balance">Balance</span>
+    <span><span class="balance__value" id="balance">1,250.00</span><span class="balance__unit" data-i18n="credits">credits</span></span>
+  </div>
+
+  <div class="prefs">
+    <div class="seg" role="group" aria-label="Language" data-i18n-attr="aria-label:language">
+      <button type="button" data-lang="en" aria-pressed="true" lang="en"><abbr title="English" style="text-decoration:none">EN</abbr></button>
+      <button type="button" data-lang="fr" aria-pressed="false" lang="fr"><abbr title="Français" style="text-decoration:none">FR</abbr></button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme" data-i18n-attr="aria-label:theme">
+      <button type="button" data-theme-set="mission" aria-pressed="true">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        <span data-i18n="themeMission">Mission mode</span>
+      </button>
+      <button type="button" data-theme-set="day" aria-pressed="false">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span data-i18n="themeDay">Day mode</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="game">
+  <!-- Stage -->
+  <section class="stage" aria-labelledby="stageTitle">
+    <h2 id="stageTitle" class="sr-only" data-i18n="stageTitle">Current launch</h2>
+    <div class="readout">
+      <span class="phase" id="phase"></span>
+      <p class="mult" id="mult" aria-hidden="true"></p>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <div class="chart">
+      <svg id="chart" viewBox="0 0 800 460" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="chartTitle">
+        <title id="chartTitle" data-i18n="chartTitle">Flight chart: altitude multiplier over time</title>
+        <defs>
+          <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--accent)" stop-opacity="0.22"/>
+            <stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g id="grid"></g>
+        <g id="stars"></g>
+        <line class="pad" x1="22" y1="422" x2="62" y2="422"/>
+        <path id="trailArea" class="trail-area" d=""/>
+        <path id="trail" class="trail" d=""/>
+        <g id="marks"></g>
+        <g id="event"></g>
+        <g id="rocket">
+          <path class="rocket-flame" d="M-5 12 Q0 30 5 12 Z"/>
+          <path class="rocket-fin" d="M-7 3 L-13 16 L-7 13 Z M7 3 L13 16 L7 13 Z"/>
+          <path class="rocket-body" d="M0 -22 C7 -14 8 -2 7 13 L-7 13 C-8 -2 -7 -14 0 -22 Z"/>
+          <circle class="rocket-window" cx="0" cy="-6" r="3"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <div class="side">
+  <!-- Controls -->
+  <section class="panel controls" id="controls" aria-labelledby="ctrlTitle" tabindex="-1">
+    <div class="panel__head">
+      <h2 class="panel__title" id="ctrlTitle" data-i18n="ctrlTitle">Flight plan</h2>
+      <span class="label" id="roundLabel">Round 48213</span>
+    </div>
+    <form onsubmit="return false" novalidate>
+      <div class="field">
+        <label class="field__label" for="wager" data-i18n="wager">Wager</label>
+        <div class="input">
+          <input id="wager" name="wager" type="text" inputmode="decimal" autocomplete="off" value="100.00" aria-describedby="wagerHint">
+          <span class="input__unit" data-i18n="credits">credits</span>
+        </div>
+        <span class="hint" id="wagerHint"></span>
+      </div>
+      <div class="chips" role="group" aria-label="Quick bets" data-i18n-attr="aria-label:quick">
+        <button type="button" class="chip" aria-pressed="false">10</button>
+        <button type="button" class="chip" aria-pressed="false">50</button>
+        <button type="button" class="chip" aria-pressed="true">100</button>
+        <button type="button" class="chip" aria-pressed="false">250</button>
+        <button type="button" class="chip" aria-pressed="false" aria-label="Half" data-i18n-attr="aria-label:half">½</button>
+        <button type="button" class="chip" aria-pressed="false" aria-label="Double" data-i18n-attr="aria-label:double">2×</button>
+      </div>
+      <div class="field">
+        <label class="field__label" for="auto" data-i18n="auto">Auto eject at</label>
+        <div class="input">
+          <input id="auto" name="auto" type="text" inputmode="decimal" autocomplete="off" placeholder="2.00" aria-describedby="autoHint">
+          <span class="input__unit">×</span>
+        </div>
+        <span class="hint" id="autoHint" data-i18n="autoHint">Optional. Leave empty to eject by hand.</span>
+      </div>
+      <div class="actions">
+        <div class="window">
+          <span data-i18n="window">Betting window</span>
+          <span class="window__bar" aria-hidden="true"><span></span></span>
+          <span data-i18n="windowLeft">5 s left</span>
+        </div>
+        <button type="button" class="btn" id="betBtn" aria-describedby="betWhy"></button>
+        <button type="button" class="btn" id="ejectBtn" aria-describedby="ejectWhy"></button>
+        <span class="sr-only" id="betWhy"></span>
+        <span class="sr-only" id="ejectWhy"></span>
+      </div>
+      <p class="kbd-hint"><kbd>Space</kbd> <span data-i18n="kbd">ejects during flight</span></p>
+    </form>
+  </section>
+
+  <!-- Provably fair -->
+  <section class="panel fair" aria-labelledby="fairTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="fairTitle" data-i18n="fairTitle">Provably fair</h2>
+      <span class="label" data-i18n="sample">Sample values</span>
+    </div>
+    <dl>
+      <div>
+        <dt class="label" data-i18n="commit">Commitment · SHA-256</dt>
+        <dd class="hash">9f2c4e1ab07d3c58e6f1a2b9d4c7e03f5a8b16d2c9e4f7a0b3d6c1e8f5a2b9c4</dd>
+      </div>
+      <div>
+        <dt class="label" data-i18n="seed">Server seed</dt>
+        <dd id="seed"></dd>
+      </div>
+    </dl>
+    <a class="fair__verify" href="#verifyHelp" id="verifyLink">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span data-i18n="verify">Verify this mission</span>
+    </a>
+    <details id="verifyHelp">
+      <summary data-i18n="howTitle">How verification works</summary>
+      <ol>
+        <li data-i18n="how1">Before launch we publish the commitment: a hash of this round's secret seed.</li>
+        <li data-i18n="how2">After the rocket aborts we reveal the seed. Its hash must match the commitment.</li>
+        <li data-i18n="how3">The seed and round number recompute the abort point. Anyone can check it.</li>
+      </ol>
+    </details>
+  </section>
+
+  </div>
+
+  <!-- Mission log -->
+  <section class="panel log" aria-labelledby="logTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="logTitle" data-i18n="logTitle">Mission log</h2>
+      <span class="label" data-i18n="logSub">Newest first</span>
+    </div>
+    <ol class="log__strip" id="log" tabindex="0" aria-labelledby="logTitle"></ol>
+  </section>
+
+  <!-- Session -->
+  <section class="panel stats" aria-labelledby="statsTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="statsTitle" data-i18n="statsTitle">This session</h2>
+      <span class="label" data-i18n="sample">Sample values</span>
+    </div>
+    <dl>
+      <div><dt class="label" data-i18n="rounds">Rounds</dt><dd>23</dd></div>
+      <div><dt class="label" data-i18n="net">Net result</dt><dd class="pos" id="net">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg><span></span></dd></div>
+      <div><dt class="label" data-i18n="best">Best multiplier</dt><dd id="best"></dd></div>
+      <div><dt class="label" data-i18n="time">Session time</dt><dd>18 min</dd></div>
+    </dl>
+    <p class="reality">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
+      <span data-i18n="reality">Reality check every 30 min · next in 12 min</span>
+    </p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p data-i18n="footer">Ascent design mock for ThunderHacks 2026. Every figure on this screen is sample data. Credits are play money with no cash value.</p>
+</footer>
+
+<!-- Icon sprites used by script -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9"/></symbol>
+  <symbol id="i-burst" viewBox="0 0 24 24"><path d="M12 2l2 6.5L20.5 6 16.5 11 22 13.5 15.5 15l1.5 6.5L12 17.5 7 21.5 8.5 15 2 13.5 7.5 11 3.5 6l6.5 2.5Z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></symbol>
+  <symbol id="i-capsule" viewBox="0 0 24 24"><path d="M4 11a8 8 0 0 1 16 0Z"/><path d="M5 11l6 7M19 11l-6 7M12 11v7"/><rect x="10" y="18" width="4" height="3" rx="1"/></symbol>
+</svg>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- Strings (EN / FR) ---------- */
+  const STR = {
+    en: {
+      skip: "Skip to flight controls", mockRegion: "Mock review controls",
+      mockTitle: "Design mock", mockNote: "sample data, no game logic", previewState: "Preview state",
+      sReady: "Ready", sFlying: "Flying", sEjected: "Cashed out", sAborted: "Crashed",
+      playOnly: "Play credits only", balance: "Balance", credits: "credits",
+      language: "Language", theme: "Theme", themeMission: "Mission mode", themeDay: "Day mode",
+      stageTitle: "Current launch", chartTitle: "Flight chart: altitude multiplier over time",
+      window: "Betting window", windowLeft: "5 s left",
+      phReady: "Boarding", phFlying: "In flight", phEjected: "Ejected", phAborted: "Aborted",
+      stReady: "Boarding is open. <strong>Place your bet</strong> before launch.",
+      stFlying: "Climbing. <strong>Eject any time</strong> to collect wager × altitude.",
+      stEjected: "Capsule ejected at <strong>{m}</strong>. <strong>+{p} credits.</strong> The rocket aborted at {c}.",
+      stAborted: "Mission aborted at <strong>{c}</strong>. Your wager of <strong>{w} credits</strong> is lost.",
+      ctrlTitle: "Flight plan", round: "Round", wager: "Wager",
+      wagerHint: "Min {min} · Max {max}", quick: "Quick bets", half: "Half", double: "Double",
+      auto: "Auto eject at", autoHint: "Optional. Leave empty to eject by hand.",
+      placeBet: "Place bet", placeSub: "{w} credits", betPlaced: "Bet placed", betPlacedSub: "{w} credits riding",
+      nextLaunch: "Next launch in 3 s", eject: "Eject", ejectSub: "Collect {v}",
+      ejectIdle: "Eject", ejectIdleSub: "Opens after launch", ejectedAt: "Ejected at {m}", abortedBtn: "Mission aborted",
+      whyBetLocked: "Betting is closed until this launch ends.", whyEjectIdle: "Eject becomes available once the rocket launches.",
+      whyDone: "This launch is over.",
+      kbd: "ejects during flight",
+      logTitle: "Mission log", logSub: "Newest first", youWon: "You ejected", youLost: "Wager lost", noBet: "No bet",
+      fairTitle: "Provably fair", sample: "Sample values", commit: "Commitment · SHA-256", seed: "Server seed",
+      sealed: "Sealed until the rocket aborts", verify: "Verify this mission",
+      howTitle: "How verification works",
+      how1: "Before launch we publish the commitment: a hash of this round's secret seed.",
+      how2: "After the rocket aborts we reveal the seed. Its hash must match the commitment.",
+      how3: "The seed and round number recompute the abort point. Anyone can check it.",
+      statsTitle: "This session", rounds: "Rounds", net: "Net result", best: "Best multiplier", time: "Session time",
+      reality: "Reality check every 30 min · next in 12 min",
+      footer: "Ascent design mock for ThunderHacks 2026. Every figure on this screen is sample data. Credits are play money with no cash value."
+    },
+    fr: {
+      skip: "Aller aux commandes de vol", mockRegion: "Commandes de revue de la maquette",
+      mockTitle: "Maquette", mockNote: "données fictives, sans logique de jeu", previewState: "État affiché",
+      sReady: "Prêt", sFlying: "En vol", sEjected: "Encaissé", sAborted: "Écrasé",
+      playOnly: "Crédits de jeu seulement", balance: "Solde", credits: "crédits",
+      language: "Langue", theme: "Thème", themeMission: "Mode mission", themeDay: "Mode jour",
+      stageTitle: "Lancement en cours", chartTitle: "Carte de vol : multiplicateur d’altitude dans le temps",
+      window: "Période de mise", windowLeft: "5 s restantes",
+      phReady: "Embarquement", phFlying: "En vol", phEjected: "Éjecté", phAborted: "Interrompu",
+      stReady: "L’embarquement est ouvert. <strong>Placez votre mise</strong> avant le décollage.",
+      stFlying: "En montée. <strong>Éjectez à tout moment</strong> pour encaisser mise × altitude.",
+      stEjected: "Capsule éjectée à <strong>{m}</strong>. <strong>+{p} crédits.</strong> La fusée s’est interrompue à {c}.",
+      stAborted: "Mission interrompue à <strong>{c}</strong>. Votre mise de <strong>{w} crédits</strong> est perdue.",
+      ctrlTitle: "Plan de vol", round: "Manche", wager: "Mise",
+      wagerHint: "Min {min} · Max {max}", quick: "Mises rapides", half: "Moitié", double: "Double",
+      auto: "Éjection auto à", autoHint: "Facultatif. Laissez vide pour éjecter manuellement.",
+      placeBet: "Placer la mise", placeSub: "{w} crédits", betPlaced: "Mise placée", betPlacedSub: "{w} crédits en jeu",
+      nextLaunch: "Prochain décollage dans 3 s", eject: "Éjecter", ejectSub: "Encaisser {v}",
+      ejectIdle: "Éjecter", ejectIdleSub: "Disponible après le décollage", ejectedAt: "Éjecté à {m}", abortedBtn: "Mission interrompue",
+      whyBetLocked: "Les mises sont fermées jusqu’à la fin de ce lancement.", whyEjectIdle: "L’éjection est disponible dès le décollage.",
+      whyDone: "Ce lancement est terminé.",
+      kbd: "éjecte pendant le vol",
+      logTitle: "Journal de mission", logSub: "Plus récent en premier", youWon: "Vous avez éjecté", youLost: "Mise perdue", noBet: "Aucune mise",
+      fairTitle: "Équité vérifiable", sample: "Valeurs fictives", commit: "Engagement · SHA-256", seed: "Graine du serveur",
+      sealed: "Scellée jusqu’à l’interruption de la fusée", verify: "Vérifier cette mission",
+      howTitle: "Comment fonctionne la vérification",
+      how1: "Avant le décollage, nous publions l’engagement : le hachage de la graine secrète de la manche.",
+      how2: "Après l’interruption, nous révélons la graine. Son hachage doit correspondre à l’engagement.",
+      how3: "La graine et le numéro de manche permettent de recalculer le point d’interruption. Tout le monde peut vérifier.",
+      statsTitle: "Cette session", rounds: "Manches", net: "Résultat net", best: "Meilleur multiplicateur", time: "Durée de session",
+      reality: "Rappel toutes les 30 min · prochain dans 12 min",
+      footer: "Maquette d’Ascent pour ThunderHacks 2026. Tous les chiffres de cet écran sont fictifs. Les crédits sont de l’argent de jeu sans valeur monétaire."
+    }
+  };
+
+  /* ---------- Hardcoded sample data ---------- */
+  const WAGER = 100, MIN_BET = 1, MAX_BET = 1000;
+  const STATES = {
+    ready:   { balance: 1250, mult: 1.00 },
+    flying:  { balance: 1150, mult: 2.47 },
+    ejected: { balance: 1397, mult: 2.47, crash: 3.86, payout: 247 },
+    aborted: { balance: 1150, mult: 1.84, crash: 1.84 }
+  };
+  const HISTORY = [
+    { c: 2.26 }, { c: 3.12, r: 112 }, { c: 1.00 }, { c: 12.40 }, { c: 2.05, r: 105 },
+    { c: 1.37, r: -100 }, { c: 5.66 }, { c: 1.12 }, { c: 2.91, r: 90 }, { c: 1.58 },
+    { c: 8.03 }, { c: 1.21, r: -50 }, { c: 4.40 }
+  ];
+  const SEED = "c41e7b9a5d2f08e36b1c4a7d9e2f5081b3c6d9e2a5f8b1c4d7e0a3f6b9c2e5d8";
+
+  /* ---------- Chart geometry (decorative curve: m = e^(k·t)) ---------- */
+  const K = 0.12, TMAX = 12, MMAX = 4, VBW = 800;
+  // Plot box in viewBox units; recomputed by layoutChart() so the plot fills the stage
+  let VBH = 460, PL = 42, PR = 728, PT = 30, PB = 422;
+  const X = t => PL + (t / TMAX) * (PR - PL);
+  const Y = m => PB - ((m - 1) / (MMAX - 1)) * (PB - PT);
+  const tOf = m => Math.log(m) / K;
+  const mOf = t => Math.exp(K * t);
+  const NS = "http://www.w3.org/2000/svg";
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const el = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+
+  let lang = "en", state = "ready", raf = 0;
+  const reduceMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const t = (key, vars) => {
+    let s = (STR[lang][key] ?? STR.en[key] ?? key);
+    if (vars) for (const v in vars) s = s.replaceAll("{" + v + "}", vars[v]);
+    return s;
+  };
+  const locale = () => (lang === "fr" ? "fr-CA" : "en-CA");
+  const money = v => new Intl.NumberFormat(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  const signed = v => (v > 0 ? "+" : v < 0 ? "−" : "") + money(Math.abs(v));
+  // Floor to 2 decimals without float drift (2.26 must never display as 2.25)
+  const floor2 = m => Math.floor(Math.round(m * 1e6) / 1e4) / 100;
+  const mult = m => new Intl.NumberFormat(locale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(floor2(m)) + "×";
+  const icon = id => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+  /* ---------- Static chart furniture ---------- */
+  function buildGrid() {
+    const g = $("#grid"); g.textContent = "";
+    for (let m = 1; m <= MMAX + 0.001; m += 0.5) {
+      const major = Number.isInteger(m);
+      el("line", { x1: PL, x2: PR, y1: Y(m), y2: Y(m), class: major ? "g-major" : "g-minor" }, g);
+      // 1.00× is the launch pad baseline; labelling it collides with the time axis
+      if (major && m > 1) { const tx = el("text", { x: PR + 10, y: Y(m) + 4, class: "g-label" }, g); tx.textContent = mult(m); }
+    }
+    const every = FSV > 20 ? 4 : 2;
+    for (let s = 0; s <= TMAX; s += 2) {
+      el("line", { x1: X(s), x2: X(s), y1: PT, y2: PB, class: s === 0 ? "g-major" : "g-minor" }, g);
+      if (s % every) continue;
+      const tx = el("text", { x: X(s), y: PB + FSV * 1.7, class: "g-label", "text-anchor": s === 0 ? "start" : s === TMAX ? "end" : "middle" }, g);
+      tx.textContent = "T+" + s + " s";
+    }
+  }
+  let FSV = 12;   // label font size in viewBox units
+  function layoutChart() {
+    const svg = $("#chart"); const w = svg.clientWidth, h = svg.clientHeight;
+    if (!w || !h) return false;
+    const scale = w / VBW;
+    FSV = Math.min(28, 12.5 / scale);
+    VBH = Math.max(300, Math.round(VBW * h / w));
+    svg.setAttribute("viewBox", `0 0 ${VBW} ${VBH}`);
+    svg.style.setProperty("--fs", FSV.toFixed(2) + "px");
+    PL = 42; PR = VBW - FSV * 4.4; PT = 30; PB = VBH - FSV * 2.4;
+    $(".pad").setAttribute("y1", PB + 1); $(".pad").setAttribute("y2", PB + 1);
+    buildGrid(); buildStars();
+    return true;
+  }
+  function buildStars() {
+    const g = $("#stars"); g.textContent = ""; let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 70; i++) {
+      el("circle", { cx: (PL + rnd() * (PR - PL)).toFixed(1), cy: (PT + rnd() * (PB - PT - 20)).toFixed(1),
+        r: (0.5 + rnd() * 1.3).toFixed(2), class: "star", opacity: (0.25 + rnd() * 0.55).toFixed(2) }, g);
+    }
+  }
+
+  /* ---------- Flight drawing ---------- */
+  function trailPath(tEnd) {
+    let d = "M" + X(0).toFixed(1) + " " + Y(1).toFixed(1);
+    const steps = Math.max(2, Math.ceil(tEnd / 0.08));
+    for (let i = 1; i <= steps; i++) { const tt = (tEnd * i) / steps; d += " L" + X(tt).toFixed(1) + " " + Y(mOf(tt)).toFixed(1); }
+    return d;
+  }
+  function placeRocket(tEnd, visible) {
+    const r = $("#rocket");
+    if (!visible) { r.setAttribute("visibility", "hidden"); return; }
+    r.setAttribute("visibility", "visible");
+    const S = 1.6;
+    if (tEnd <= 0) { r.setAttribute("transform", `translate(${X(0) + 6} ${Y(1) - 13 * S}) scale(${S})`); return; }
+    const dx = (PR - PL) / TMAX, dy = -((PB - PT) / (MMAX - 1)) * K * mOf(tEnd);
+    // Launch vertical, then pitch over onto the trajectory (a gravity turn) over the first ~3 s
+    const p = Math.min(1, tEnd / 3), ease = p * p * (3 - 2 * p);
+    const ang = (Math.atan2(dy, dx) * 180 / Math.PI + 90) * ease;
+    r.setAttribute("transform", `translate(${X(tEnd).toFixed(1)} ${Y(mOf(tEnd)).toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${S})`);
+  }
+  function catalogue(tEnd) {
+    const g = $("#marks"); g.textContent = "";
+    for (let m = 2; m < MMAX; m++) {
+      const tm = tOf(m); if (tm > tEnd) break;
+      const x = X(tm), y = Y(m);
+      el("path", { d: `M${x} ${y - 6} L${x + 1.6} ${y - 1.6} L${x + 6} ${y} L${x + 1.6} ${y + 1.6} L${x} ${y + 6} L${x - 1.6} ${y + 1.6} L${x - 6} ${y} L${x - 1.6} ${y - 1.6} Z`, class: "cat-mark" }, g);
+      const tx = el("text", { x: x - 12, y: y - 12, class: "cat-label", "text-anchor": "end" }, g);
+      tx.textContent = mult(m) + " · T+" + tm.toFixed(1).replace(".", lang === "fr" ? "," : ".") + " s";
+    }
+  }
+  function drawFlight(tEnd) {
+    const d = trailPath(tEnd);
+    $("#trail").setAttribute("d", tEnd > 0 ? d : "");
+    $("#trailArea").setAttribute("d", tEnd > 0 ? d + ` L${X(tEnd).toFixed(1)} ${PB} L${X(0)} ${PB} Z` : "");
+    catalogue(tEnd);
+  }
+  function drawEvents() {
+    const g = $("#event"); g.textContent = "";
+    const s = STATES[state];
+    if (state === "ejected") {
+      const te = tOf(s.mult), x = X(te), y = Y(s.mult);
+      const c = el("g", { transform: `translate(${x} ${y - 30})` }, g);
+      el("path", { d: "M-11 0 A11 11 0 0 1 11 0 Z", class: "ev-win" }, c);
+      el("path", { d: "M-11 0 L-2 14 M11 0 L2 14 M0 0 V14", class: "ev-win" }, c);
+      el("rect", { x: -4, y: 14, width: 8, height: 7, rx: 2, class: "ev-win-fill" }, c);
+      el("circle", { cx: x, cy: y, r: 4.5, class: "ev-win-fill" }, g);
+      const tx = el("text", { x: x - 20, y: y - 22, class: "ev-label-win", "text-anchor": "end" }, g);
+      tx.textContent = t("phEjected").toUpperCase() + " " + mult(s.mult);
+    }
+    if (state === "ejected" || state === "aborted") {
+      const tc = tOf(s.crash), x = X(tc), y = Y(s.crash);
+      const pts = [];
+      for (let i = 0; i < 16; i++) { const a = (Math.PI * 2 * i) / 16 - Math.PI / 2, r = i % 2 ? 6 : 15; pts.push((x + r * Math.cos(a)).toFixed(1) + "," + (y + r * Math.sin(a)).toFixed(1)); }
+      el("polygon", { points: pts.join(" "), class: "ev-abort" }, g);
+      const right = x > PR - 220;
+      const tx = el("text", { x: right ? x - 22 : x + 22, y: y + 5, class: "ev-label-abort", "text-anchor": right ? "end" : "start" }, g);
+      tx.textContent = t("phAborted").toUpperCase() + " " + mult(s.crash);
+    }
+  }
+
+  /* ---------- Decorative climb loop (Flying state only) ---------- */
+  const LOOP_TOP = 3.2, SPEED = 1.35, HOLD = 1.4;
+  function stopLoop() { cancelAnimationFrame(raf); raf = 0; }
+  function setLive(m) {
+    $("#mult").innerHTML = mult(m).replace("×", '<span class="mult__x">×</span>');
+    const live = document.getElementById("ejectLive");   // exists only in the Flying state
+    if (live) live.textContent = t("ejectSub", { v: money(WAGER * floor2(m)) });
+  }
+  function startLoop() {
+    stopLoop();
+    if (reduceMQ.matches) { const te = tOf(STATES.flying.mult); drawFlight(te); placeRocket(te, true); setLive(STATES.flying.mult); return; }
+    const tTop = tOf(LOOP_TOP); let t0 = 0;
+    const frame = ts => {
+      if (!t0) t0 = ts;
+      let tt = ((ts - t0) / 1000) * SPEED;
+      if (tt > tTop + HOLD * SPEED) { t0 = ts; tt = 0; }
+      tt = Math.min(tt, tTop);
+      drawFlight(tt); placeRocket(tt, true); setLive(mOf(tt));
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* ---------- Render one state ---------- */
+  function render() {
+    const s = STATES[state];
+    document.body.dataset.state = state;
+    $$("#stateSwitch button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setState === state)));
+
+    $("#balance").textContent = money(s.balance);
+    const ph = { ready: ["phReady", "i-clock"], flying: ["phFlying", "i-up"], ejected: ["phEjected", "i-check"], aborted: ["phAborted", "i-burst"] }[state];
+    $("#phase").innerHTML = icon(ph[1]) + "<span>" + t(ph[0]) + "</span>";
+
+    const vars = { m: mult(s.mult), c: s.crash ? mult(s.crash) : "", p: money((s.payout || 0) - WAGER), w: money(WAGER) };
+    const stKey = { ready: "stReady", flying: "stFlying", ejected: "stEjected", aborted: "stAborted" }[state];
+    const stIcon = { ready: "i-clock", flying: "i-up", ejected: "i-check", aborted: "i-burst" }[state];
+    $("#status").innerHTML = icon(stIcon) + "<span>" + t(stKey, vars) + "</span>";
+
+    // Buttons
+    const bet = $("#betBtn"), ej = $("#ejectBtn");
+    bet.className = "btn"; ej.className = "btn";
+    bet.disabled = state !== "ready"; ej.disabled = state !== "flying";
+    if (state === "ready") {
+      bet.classList.add("btn--go");
+      bet.innerHTML = `<span>${t("placeBet")}</span><span class="btn__sub">${t("placeSub", { w: money(WAGER) })}</span>`;
+      ej.innerHTML = `<span>${t("ejectIdle")}</span><span class="btn__sub">${t("ejectIdleSub")}</span>`;
+      $("#betWhy").textContent = ""; $("#ejectWhy").textContent = t("whyEjectIdle");
+    } else if (state === "flying") {
+      bet.innerHTML = `<span>${t("betPlaced")}</span><span class="btn__sub">${t("betPlacedSub", { w: money(WAGER) })}</span>`;
+      ej.classList.add("btn--go");
+      ej.innerHTML = `<span>${t("eject")}</span><span class="btn__sub" id="ejectLive"></span>`;
+      $("#betWhy").textContent = t("whyBetLocked"); $("#ejectWhy").textContent = "";
+    } else {
+      bet.innerHTML = `<span>${t("nextLaunch")}</span>`;
+      if (state === "ejected") { ej.classList.add("is-done-win"); ej.innerHTML = `<span class="btn__sub">${icon("i-check")}${t("ejectedAt", { m: mult(s.mult) })}</span>`; }
+      else { ej.classList.add("is-done-abort"); ej.innerHTML = `<span class="btn__sub">${icon("i-burst")}${t("abortedBtn")}</span>`; }
+      $("#betWhy").textContent = t("whyBetLocked"); $("#ejectWhy").textContent = t("whyDone");
+    }
+    const locked = state === "flying";
+    $("#wager").disabled = locked; $("#auto").disabled = locked;
+    $$(".chip").forEach(c => (c.disabled = locked));
+    $("#wager").value = money(WAGER);
+    $("#auto").placeholder = lang === "fr" ? "ex. 2,00" : "e.g. 2.00";
+    $("#wagerHint").textContent = t("wagerHint", { min: money(MIN_BET), max: money(MAX_BET) });
+    $("#roundLabel").textContent = t("round") + " 48213";
+
+    // Mission log
+    let log = HISTORY.slice();
+    if (state === "ejected") log.unshift({ c: s.crash, r: s.payout - WAGER, isNew: true });
+    if (state === "aborted") log.unshift({ c: s.crash, r: -WAGER, isNew: true });
+    $("#log").innerHTML = log.map(e => {
+      const tier = e.c < 2 ? "entry--low" : e.c >= 10 ? "entry--high" : "";
+      let you;
+      if (e.r > 0) you = `<span class="entry__you entry__you--win">${icon("i-capsule")}${signed(e.r)}<span class="sr-only">, ${t("youWon")}</span></span>`;
+      else if (e.r < 0) you = `<span class="entry__you entry__you--loss">${icon("i-burst")}${signed(e.r)}<span class="sr-only">, ${t("youLost")}</span></span>`;
+      else you = `<span class="entry__you entry__you--none">${t("noBet")}</span>`;
+      return `<li class="entry ${tier} ${e.isNew ? "entry--new" : ""}"><span class="entry__crash">${mult(e.c)}</span>${you}</li>`;
+    }).join("");
+
+    // Provably fair
+    const revealed = state === "ejected" || state === "aborted";
+    $("#seed").className = revealed ? "hash" : "sealed";
+    $("#seed").innerHTML = revealed ? SEED : icon("i-lock") + "<span>" + t("sealed") + "</span>";
+
+    // Session (static sample values)
+    $("#net span").textContent = signed(312.5);
+    $("#best").textContent = mult(6.41);
+
+    // Chart
+    stopLoop();
+    if (state === "ready") { drawFlight(0); placeRocket(0, true); setLive(1); }
+    else if (state === "flying") { startLoop(); }
+    else { const te = tOf(s.crash); drawFlight(te); placeRocket(0, false); setLive(s.mult); }
+    drawEvents();
+  }
+
+  /* ---------- Language ---------- */
+  function applyLang() {
+    document.documentElement.lang = lang === "fr" ? "fr-CA" : "en-CA";
+    $$("[data-i18n]").forEach(n => { n.textContent = t(n.dataset.i18n); });
+    $$("[data-i18n-attr]").forEach(n => {
+      n.dataset.i18nAttr.split(";").forEach(pair => { const [attr, key] = pair.split(":"); n.setAttribute(attr, t(key)); });
+    });
+    $$("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    layoutChart();
+    render();
+  }
+
+  /* ---------- Theme ---------- */
+  function applyTheme(name) {
+    document.documentElement.dataset.theme = name;
+    $$("[data-theme-set]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.themeSet === name)));
+    try { localStorage.setItem("ascent-mock-theme", name); } catch (e) {}
+  }
+
+  /* ---------- Wire up (mock controls only) ---------- */
+  $("#stateSwitch").addEventListener("click", e => { const b = e.target.closest("[data-set-state]"); if (b) { state = b.dataset.setState; render(); } });
+  $$("[data-lang]").forEach(b => b.addEventListener("click", () => { lang = b.dataset.lang; applyLang(); }));
+  $$("[data-theme-set]").forEach(b => b.addEventListener("click", () => applyTheme(b.dataset.themeSet)));
+  reduceMQ.addEventListener?.("change", render);
+  let resizeT = 0;
+  window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (layoutChart()) render(); }, 120); });
+
+  // Review shortcut: #state=flying&theme=day&lang=fr opens the mock in a given view
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (STATES[q.get("state")]) state = q.get("state");
+  if (STR[q.get("lang")]) lang = q.get("lang");
+  let saved = q.get("theme"); try { saved = saved || localStorage.getItem("ascent-mock-theme"); } catch (e) {}
+  applyTheme(saved === "day" || saved === "mission" ? saved : "mission");
+  applyLang();
+})();
+</script>
+</body>
+</html>

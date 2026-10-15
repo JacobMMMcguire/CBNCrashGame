@@ -25,3 +25,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Local tooling
+.claude/settings.local.json
+.playwright-cli/
+.impeccable/review/
