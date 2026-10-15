@@ -26,7 +26,11 @@ Thumbs.db
 .idea/
 *.swp
 
+# Python
+.pytest_cache/
+*.pyc
+
 # Local tooling
-.claude/settings.local.json
+.claude/
 .playwright-cli/
 .impeccable/review/

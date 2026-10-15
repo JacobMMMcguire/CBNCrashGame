@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="mission">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascent</title>
+<meta name="description" content="Ascent: a space-mission crash game played with play credits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/app.css">
+<script type="module" src="js/main.js"></script>
+</head>
+<body data-phase="boarding">
+<a class="skip" href="#controls" data-i18n="skip">Skip to flight controls</a>
+
+<p class="banner" id="mockBanner" hidden data-i18n="mock.banner">Mock mode: fake rounds run in this browser. No server, sample data only.</p>
+<p class="banner" id="bootError" role="alert" hidden></p>
+
+<header class="top">
+  <div class="brand">
+    <!-- Original mark: an ascent arc leaving the horizon, ending in a catalogued star -->
+    <svg viewBox="0 0 36 36" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="35" height="35" rx="9" fill="var(--surface-2)" stroke="var(--line)"/>
+      <path d="M7 27 H29" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M9 27 C17 26 22 20 25.5 10.5" fill="none" stroke="var(--accent-line)" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M26.6 5.2 L27.5 8.3 L30.6 9.2 L27.5 10.1 L26.6 13.2 L25.7 10.1 L22.6 9.2 L25.7 8.3 Z" fill="var(--ink)"/>
+    </svg>
+    <div>
+      <h1 class="brand__name">Ascent</h1>
+      <span class="label" data-i18n="app.playOnly">Play credits only</span>
+    </div>
+  </div>
+
+  <div class="balance">
+    <span class="label" data-i18n="header.balance">Balance</span>
+    <span><span class="balance__value" id="balance">–</span><span class="balance__unit" data-i18n="unit.credits">credits</span></span>
+  </div>
+
+  <div class="prefs">
+    <span class="conn" id="conn" role="status" data-status="connecting">
+      <span class="sr-only" data-i18n="conn.label">Connection</span>
+      <span id="connText" data-i18n="conn.connecting">Connecting…</span>
+    </span>
+    <div class="seg" role="group" aria-label="Language" data-i18n-attr="aria-label:pref.language" id="langSwitch"></div>
+    <div class="seg" role="group" aria-label="Theme" data-i18n-attr="aria-label:pref.theme">
+      <button type="button" data-theme-set="mission" aria-pressed="true" data-i18n="theme.mission">Mission mode</button>
+      <button type="button" data-theme-set="day" aria-pressed="false" data-i18n="theme.day">Day mode</button>
+    </div>
+  </div>
+</header>
+
+<main class="game">
+  <section class="stage" aria-labelledby="stageTitle">
+    <h2 id="stageTitle" class="sr-only" data-i18n="stage.title">Current launch</h2>
+    <span class="phase" id="phase"></span>
+    <p class="mult" id="mult" aria-hidden="true">1.00<span class="mult__x">×</span></p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <div class="chart-placeholder" data-i18n="stage.chart">Flight chart placeholder.</div>
+  </section>
+
+  <section class="panel controls" id="controls" aria-labelledby="ctrlTitle" tabindex="-1">
+    <div class="panel__head">
+      <h2 class="panel__title" id="ctrlTitle" data-i18n="controls.title">Flight plan</h2>
+      <span class="label" id="roundLabel"></span>
+    </div>
+    <form id="betForm" novalidate>
+      <div class="field">
+        <label class="field__label" for="wager" data-i18n="controls.wager">Wager</label>
+        <div class="input">
+          <input id="wager" name="wager" type="text" inputmode="decimal" autocomplete="off" aria-describedby="wagerHint">
+          <span class="input__unit" data-i18n="unit.credits">credits</span>
+        </div>
+        <span class="hint" id="wagerHint"></span>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Quick bets" data-i18n-attr="aria-label:controls.quick"></div>
+      <div class="field">
+        <label class="field__label" for="auto" data-i18n="controls.auto">Auto eject at</label>
+        <div class="input">
+          <input id="auto" name="auto" type="text" inputmode="decimal" autocomplete="off" aria-describedby="autoHint">
+          <span class="input__unit">×</span>
+        </div>
+        <span class="hint" id="autoHint" data-i18n="controls.autoHint">Optional. Leave empty to eject by hand.</span>
+      </div>
+      <div class="actions">
+        <p class="window" id="window" hidden></p>
+        <button type="submit" class="btn" id="betBtn" aria-describedby="betWhy"></button>
+        <button type="button" class="btn" id="ejectBtn" aria-describedby="ejectWhy"></button>
+        <span class="sr-only" id="betWhy"></span>
+        <span class="sr-only" id="ejectWhy"></span>
+        <p class="error" id="error" role="alert"></p>
+      </div>
+      <p class="kbd-hint"><kbd>Space</kbd> <span data-i18n="controls.kbd">ejects during flight</span></p>
+    </form>
+  </section>
+
+  <section class="panel log" aria-labelledby="logTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="logTitle" data-i18n="log.title">Mission log</h2>
+      <span class="label" data-i18n="log.sub">Newest first</span>
+    </div>
+    <ol class="log__strip" id="log" tabindex="0" aria-labelledby="logTitle"></ol>
+  </section>
+
+  <section class="panel fair" aria-labelledby="fairTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="fairTitle" data-i18n="fair.title">Provably fair</h2>
+      <span class="label" data-i18n="fair.placeholder">Placeholder</span>
+    </div>
+    <dl>
+      <div><dt class="label" data-i18n="fair.commit">Commitment</dt><dd class="hash" id="commitment"></dd></div>
+      <div><dt class="label" data-i18n="fair.seed">Server seed</dt><dd id="seed"></dd></div>
+    </dl>
+    <p class="note" data-i18n="fair.note">Skeleton build: the commitment is a placeholder and proves nothing yet.</p>
+  </section>
+
+  <section class="panel stats" aria-labelledby="statsTitle">
+    <div class="panel__head">
+      <h2 class="panel__title" id="statsTitle" data-i18n="stats.title">This session</h2>
+      <span class="label" data-i18n="fair.placeholder">Placeholder</span>
+    </div>
+    <p class="hint" data-i18n="stats.placeholder">Session stats arrive in a later step.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p data-i18n="footer">Ascent walking skeleton. Credits are play money with no cash value.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/error.schema.json",
+  "$defs": {
+    "ErrorBody": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "BET_WINDOW_CLOSED",
+            "BET_OUT_OF_RANGE",
+            "INSUFFICIENT_BALANCE",
+            "ALREADY_BET",
+            "NO_ACTIVE_BET",
+            "TOO_LATE",
+            "IDEMPOTENCY_KEY_REUSED",
+            "UNAUTHORIZED",
+            "INVALID_REQUEST",
+            "ROUND_NOT_IN_FLIGHT",
+            "ROUND_NOT_FOUND",
+            "ROUND_NOT_FINISHED"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "ErrorBody",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "error": {
+      "$ref": "#/$defs/ErrorBody"
+    }
+  },
+  "required": [
+    "error"
+  ],
+  "title": "ErrorResponse",
+  "type": "object"
+}

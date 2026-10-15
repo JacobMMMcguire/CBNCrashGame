@@ -1,0 +1,9 @@
+{
+  "type": "round.launched",
+  "seq": 18201,
+  "roundId": "r_48213",
+  "data": {
+    "launchedAt": "2026-10-15T18:04:12.350Z",
+    "growthRate": 0.12
+  }
+}

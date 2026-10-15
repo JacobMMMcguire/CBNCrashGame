@@ -1,0 +1,10 @@
+{
+  "type": "history.updated",
+  "seq": 18265,
+  "data": {
+    "round": {
+      "roundId": "r_48213",
+      "crash": 3.86
+    }
+  }
+}

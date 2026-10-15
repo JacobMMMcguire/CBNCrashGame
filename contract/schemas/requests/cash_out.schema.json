@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "requests/cash_out.schema.json",
+  "additionalProperties": false,
+  "description": "Empty body: ``{}``. The server decides the multiplier (\u00a75).",
+  "properties": {},
+  "title": "CashOutRequest",
+  "type": "object"
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.cashout.schema.json",
+  "$defs": {
+    "CashoutData": {
+      "additionalProperties": false,
+      "properties": {
+        "betId": {
+          "pattern": "^b_\\d+$",
+          "title": "Betid",
+          "type": "string"
+        },
+        "multiplier": {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "title": "Multiplier",
+          "type": "number"
+        },
+        "payout": {
+          "examples": [
+            "100.00"
+          ],
+          "pattern": "^\\d{1,9}\\.\\d{2}$",
+          "title": "Payout",
+          "type": "string"
+        },
+        "auto": {
+          "title": "Auto",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "betId",
+        "multiplier",
+        "payout",
+        "auto"
+      ],
+      "title": "CashoutData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.cashout",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/CashoutData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundCashoutEvent",
+  "type": "object"
+}

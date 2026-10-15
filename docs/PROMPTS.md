@@ -72,6 +72,81 @@ Eight documentation files, the `.gitignore` additions, and one mock HTML file th
 
 ---
 
+## Skeleton
+
+### Runnable walking skeleton, backend and frontend (2026-10-15, TBD)
+
+**Context to paste**
+README.md, PRODUCT.md, DESIGN.md, docs/SCOPE.md, docs/WORKFLOW.md, docs/GAME_CONTRACT.md, docs/HANDOFF.md, frontend/mock_frontend.html and the problem statement PDF (the prompt tells the model to read them).
+
+**Exact prompt**
+```text
+BRANCH CHECK (first):
+Run `git branch --show-current` and `git status`. Check that PRODUCT.md, DESIGN.md, docs/GAME_CONTRACT.md and frontend/mock_frontend.html exist. If any is missing, stop and tell me which branch has them. If the current branch is not main or master, run `git checkout -b skeleton` (switch to it if it already exists). Never work on main or master. Run no other git command that changes anything until PART B.
+
+GOAL: Build a runnable walking skeleton for the CBN crash game ("Ascent") that the backend and the frontend can be developed on in parallel. Stack: Python 3.11+, FastAPI, WebSocket, plain HTML/CSS/JS with ES modules and no build step. This is a foundation, not the finished game: real game logic stays as clearly marked stubs.
+
+READ FIRST: README.md, PRODUCT.md, DESIGN.md, docs/SCOPE.md, docs/WORKFLOW.md, docs/GAME_CONTRACT.md (the source of truth for states, config, endpoints and events), docs/HANDOFF.md, frontend/mock_frontend.html (the visual reference) and the problem statement PDF. If docs/BLUEPRINT.md and docs/WIREFRAMES.md exist, follow them too.
+
+HARD RULES:
+- Play money only; no real money, payments or accounts.
+- The server owns the multiplier clock, the crash point and the balance. The crash point must never appear in any message before the crash.
+- Do NOT implement the real RNG, the provably fair flow, or the real ledger rules. Provide interfaces plus clearly labelled SKELETON ONLY stubs: a deterministic, insecure fixed-sequence crash-point provider; a placeholder fairness hash; an in-memory ledger. Never describe the stubs as fair or secure.
+- Never write any secret or key. Add .env.example with names only.
+- Do not edit PRODUCT.md or DESIGN.md. Do not copy NASA or any real agency's logos or wordmarks. Do not add any confidentiality note.
+- Follow docs/GAME_CONTRACT.md exactly; if it must change, list the proposal under "Contract changes proposed" in docs/SKELETON.md and do not edit it.
+
+BUILD:
+1. Structure: backend/app/ (config, schemas, engine, ledger, rng, fairness, api, realtime, main), backend/tests/, frontend/ (index.html, css/, js/, locales/), contract/ (examples and JSON schemas for every request, response and event), config/game.json, scripts/, docs/.
+2. Config: config/game.json with the keys and example values from the contract, loaded and validated at startup with clear error messages. A public subset is exposed at GET /api/config. Include a contract_version.
+3. Interfaces: define the module interfaces (for example CrashPointProvider, Ledger, RoundEngine, Clock) with docstrings that say what the real implementation must do and which contract section it comes from. Each stub carries a TODO and a "SKELETON ONLY" label.
+4. Round engine: the state machine (idle, betting, in-flight, crashed, settled) with guarded transitions and a real server-clock loop that emits ticks at the configured interval, using the stub crash points.
+5. API per the contract: place bet and cash out with idempotency keys, current state, history, config and health. A WebSocket endpoint emitting round_state, tick, crashed and history events. Validated inputs, structured error codes from the contract, and CORS settings in config.
+6. Frontend shell: the layout regions of mock_frontend.html (header with balance, language and theme; stage with multiplier readout and status line; controls with wager input, quick-bet chips, auto cash out placeholder, Place Bet and Cash Out; history strip; provably fair panel placeholder; session stats placeholder). Use the tokens from DESIGN.md as CSS variables. Modules: api.js, realtime.js (WebSocket with reconnect and a visible connection status), store.js, i18n.js with locales/en.json and locales/fr.json, and one small module per component. Buttons enable and disable correctly per game state. This is a shell: working structure and semantics, minimal styling, no polish.
+7. Mock mode: opening the frontend with ?mock=1 runs a local fake round loop that emits the same events from contract/examples/, so the frontend can be developed without the backend.
+8. Accessibility baseline: semantic HTML, labelled inputs, an aria-live status announcement per game state, visible focus, keyboard operation of Place Bet and Cash Out, prefers-reduced-motion respected.
+9. Tests (pytest, httpx): config validation; state transitions; idempotent bet and cash-out; the crash point never appears before the crash; a WebSocket smoke test; and every file in contract/examples validates against its schema.
+10. Tooling: requirements.txt with minimal pinned dependencies (fastapi, uvicorn, websockets, httpx, pytest), scripts/dev.ps1 and scripts/dev.sh that create the venv, install, and start one server that also serves the frontend at /app, and scripts/check_env.py that imports each dependency and prints a plain message if Windows Application Control blocks a package, instead of a raw traceback. Add .env.example and extend .gitignore (.venv, __pycache__, .env, .claude/).
+11. Docs: docs/SKELETON.md (how the skeleton is organised, what is stubbed, who owns which module, how to replace a stub, run and test commands, "Contract changes proposed"); replace the TBD "Getting started" and "Tech stack" in README.md with the real commands and stack; add docs/SKELETON.md to the documentation index in README.md and to the read order in docs/HANDOFF.md; log this prompt and its result in docs/PROMPTS.md under "Skeleton".
+
+CHECKS BEFORE FINISHING:
+1. Run scripts/check_env.py. If a package is blocked by Application Control, report it plainly and do not work around the block.
+2. Run the tests and report the results.
+3. Start the server and verify with real requests: health, config, state, a bet, an idempotent repeat of the same bet, a cash out, and a WebSocket session showing ticks and a crash event. Confirm that no message before the crash contains the crash point.
+4. If a browser is available, load /app and ?mock=1, confirm the shell renders, buttons change per state, and the connection status and language toggle work. If not, say so.
+5. Run /impeccable audit on the shell for an accessibility baseline, report the findings, and fix only trivial ones. Visual polish comes later with /impeccable polish.
+6. `git status`: only expected files; no secrets; no .claude/.
+Then STOP. Print the check results, what is stubbed, who can start on what, "Contract changes proposed", and the open issues. Wait for me to reply "go". Do not run any git command that changes anything until I do.
+
+PART B: LOCAL COMMIT ONLY (after I reply "go")
+Run `git branch --show-current` (must be skeleton), then `git status`. Stage the new and changed files by name (never `git add .` or `git add -A`), excluding .venv, .env and .claude/. Commit with the message: "Add runnable skeleton for backend and frontend (stubs marked SKELETON ONLY)". Do not push. Print the branch, commit hash and files committed, and remind me that I may not have push access to this repository, so a fork or the owner's permission may be needed.
+```
+
+The session was cut off by a network error. It was resumed with a second prompt that repeated the hard rules, asked for a state report and a check of half-applied edits, moved the dev server to port 8001 (to avoid another project's server), and asked for the remaining checks (a)–(e) before stopping for "go".
+
+**Expected output**
+A server that runs rounds on its own clock with stub crash points, the full API and event set from the contract, a frontend shell that plays against it or against `?mock=1`, contract examples and schemas, tests, dev scripts and docs/SKELETON.md.
+
+**How we test it**
+- `.venv\Scripts\python scripts\check_env.py`: all packages import (no Application Control block on this machine).
+- `.venv\Scripts\python -m pytest`: 63 passed.
+- Live requests against `http://127.0.0.1:8001`: health, config, current round, a bet and the same bet repeated with the same key (identical body, `Idempotent-Replayed: true`, balance debited once), a cash out repeated with the same key (identical, paid once), and a WebSocket session with ticks, private `round.cashout` / `balance.updated`, and `round.crashed`. Of 100 messages before the crash, none contained the crash point or the seed.
+- Headless Microsoft Edge driven over the DevTools protocol: `/app/` and `/app/?mock=1` render; Place bet (keyboard Enter) and Eject (Space) change state as specified; EN/FR and Mission/Day toggle and are remembered; stopping the server shows "Reconnecting…" and disables Place bet with "Waiting for the connection to mission control"; restarting recovers to "Live" and re-enables the controls; no horizontal scroll at 390 px.
+
+**What went wrong and how we fixed it**
+- `python` on PATH was the Microsoft Store stub; the dev scripts use the `py` launcher (or its default install path) to create the venv.
+- Windows can map `.js` to `text/plain`, which breaks ES modules; `main.py` registers the right MIME types.
+- The first live-check script miscounted messages before the crash (it counted a crash from the round it joined midway). After the fix, the leak check ran on 100+ messages.
+- The browser check found three label bugs, all fixed: Place bet still said "credits riding" after an eject; Eject's disabled reason was wrong after an eject; the countdown could show "6 s" for a 5 s window.
+- The session was cut off by a network error during the browser checks; the resumed session re-ran every check from the start on port 8001.
+
+**Audit results** (`/impeccable audit` on the shell, accessibility focus)
+- Detector on files: 0 failures, 16 advisories (font sizes and two radii off the DESIGN.md front-matter scale, carried over from the mock). Detector on the live page: 1 finding (mission-log entries are cards inside a panel, as in the mock).
+- Trivial fixes applied: placeholder contrast (4.0:1 raised by using `--ink-3`), phase-chip glyphs hidden from screen readers, an invalid `aria-labelledby` on the balance removed, selection and caret themed from the palette.
+- Left for later (`$impeccable adapt` / `$impeccable polish`): Unicode glyphs instead of SVG icons (phase chip and the ✓/✷ in button labels); segmented buttons (36 px) and chips (40 px) below 44 px touch targets; disabled buttons drop out of the tab order, so their reasons are only reachable by screen-reader browsing; no announcement of whole multipliers during flight; phone layout (header wraps loosely, controls below the fold, no Eject dock); off-ramp font sizes and radii.
+
+---
+
 ## Step 1: Config and game rules
 
 _No entries yet._

@@ -1,0 +1,9 @@
+{
+  "type": "round.tick",
+  "seq": 18233,
+  "roundId": "r_48213",
+  "data": {
+    "multiplier": 1.47,
+    "elapsedMs": 3210
+  }
+}

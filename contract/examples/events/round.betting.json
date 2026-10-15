@@ -1,0 +1,9 @@
+{
+  "type": "round.betting",
+  "seq": 18200,
+  "roundId": "r_48213",
+  "data": {
+    "commitment": "9f2c4e1ab07d3c58e6f1a2b9d4c7e03f5a8b16d2c9e4f7a0b3d6c1e8f5a2b9c4",
+    "closesAt": "2026-10-15T18:04:12.350Z"
+  }
+}

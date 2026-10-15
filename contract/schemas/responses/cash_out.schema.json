@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/cash_out.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "betId": {
+      "pattern": "^b_\\d+$",
+      "title": "Betid",
+      "type": "string"
+    },
+    "status": {
+      "const": "cashed-out",
+      "title": "Status",
+      "type": "string"
+    },
+    "multiplier": {
+      "description": "Two decimals, floored",
+      "minimum": 1.0,
+      "title": "Multiplier",
+      "type": "number"
+    },
+    "payout": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Payout",
+      "type": "string"
+    },
+    "profit": {
+      "examples": [
+        "-100.00"
+      ],
+      "pattern": "^-?\\d{1,9}\\.\\d{2}$",
+      "title": "Profit",
+      "type": "string"
+    },
+    "balance": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Balance",
+      "type": "string"
+    }
+  },
+  "required": [
+    "betId",
+    "status",
+    "multiplier",
+    "payout",
+    "profit",
+    "balance"
+  ],
+  "title": "CashOutResponse",
+  "type": "object"
+}

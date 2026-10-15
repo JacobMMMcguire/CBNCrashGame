@@ -1,0 +1,11 @@
+{
+  "type": "round.cashout",
+  "seq": 18240,
+  "roundId": "r_48213",
+  "data": {
+    "betId": "b_99",
+    "multiplier": 2.47,
+    "payout": "247.00",
+    "auto": false
+  }
+}

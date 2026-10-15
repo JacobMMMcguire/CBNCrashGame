@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/config.schema.json",
+  "additionalProperties": false,
+  "description": "SKELETON addition (proposed): the public subset of config/game.json.",
+  "properties": {
+    "contractVersion": {
+      "title": "Contractversion",
+      "type": "string"
+    },
+    "minBet": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Minbet",
+      "type": "string"
+    },
+    "maxBet": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Maxbet",
+      "type": "string"
+    },
+    "startingBalance": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Startingbalance",
+      "type": "string"
+    },
+    "maxMultiplier": {
+      "title": "Maxmultiplier",
+      "type": "number"
+    },
+    "growthRate": {
+      "title": "Growthrate",
+      "type": "number"
+    },
+    "targetRtp": {
+      "title": "Targetrtp",
+      "type": "number"
+    },
+    "bettingWindowMs": {
+      "title": "Bettingwindowms",
+      "type": "integer"
+    },
+    "settleDelayMs": {
+      "title": "Settledelayms",
+      "type": "integer"
+    },
+    "tickIntervalMs": {
+      "title": "Tickintervalms",
+      "type": "integer"
+    },
+    "multiplierDecimals": {
+      "title": "Multiplierdecimals",
+      "type": "integer"
+    },
+    "autoCashOutMin": {
+      "title": "Autocashoutmin",
+      "type": "number"
+    },
+    "defaultLanguage": {
+      "title": "Defaultlanguage",
+      "type": "string"
+    },
+    "supportedLanguages": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supportedlanguages",
+      "type": "array"
+    },
+    "quickBetChips": {
+      "items": {
+        "examples": [
+          "100.00"
+        ],
+        "pattern": "^\\d{1,9}\\.\\d{2}$",
+        "type": "string"
+      },
+      "title": "Quickbetchips",
+      "type": "array"
+    },
+    "realityCheckMinutes": {
+      "title": "Realitycheckminutes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "minBet",
+    "maxBet",
+    "startingBalance",
+    "maxMultiplier",
+    "growthRate",
+    "targetRtp",
+    "bettingWindowMs",
+    "settleDelayMs",
+    "tickIntervalMs",
+    "multiplierDecimals",
+    "autoCashOutMin",
+    "defaultLanguage",
+    "supportedLanguages",
+    "quickBetChips",
+    "realityCheckMinutes"
+  ],
+  "title": "PublicConfigResponse",
+  "type": "object"
+}

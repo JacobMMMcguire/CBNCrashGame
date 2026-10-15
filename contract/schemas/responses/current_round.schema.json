@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/current_round.schema.json",
+  "$defs": {
+    "MyBet": {
+      "additionalProperties": false,
+      "properties": {
+        "wager": {
+          "examples": [
+            "100.00"
+          ],
+          "pattern": "^\\d{1,9}\\.\\d{2}$",
+          "title": "Wager",
+          "type": "string"
+        },
+        "autoCashOut": {
+          "anyOf": [
+            {
+              "description": "Two decimals, floored",
+              "minimum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Autocashout"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "cashed-out",
+            "lost"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "wager",
+        "autoCashOut",
+        "status"
+      ],
+      "title": "MyBet",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "idle",
+        "betting",
+        "in-flight",
+        "crashed",
+        "settled"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "commitment": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Commitment"
+    },
+    "closesAt": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "SKELETON addition: when betting closes (proposed)",
+      "title": "Closesat"
+    },
+    "launchedAt": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Launchedat"
+    },
+    "growthRate": {
+      "title": "Growthrate",
+      "type": "number"
+    },
+    "serverTime": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "title": "Servertime",
+      "type": "string"
+    },
+    "myBet": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MyBet"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "crash": {
+      "anyOf": [
+        {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Absent until the round has crashed",
+      "title": "Crash"
+    },
+    "serverSeed": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Absent until the round has crashed",
+      "title": "Serverseed"
+    }
+  },
+  "required": [
+    "roundId",
+    "state",
+    "commitment",
+    "closesAt",
+    "launchedAt",
+    "growthRate",
+    "serverTime",
+    "myBet"
+  ],
+  "title": "CurrentRoundResponse",
+  "type": "object"
+}

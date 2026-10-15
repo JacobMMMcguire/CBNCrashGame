@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/health.schema.json",
+  "additionalProperties": false,
+  "description": "SKELETON addition (proposed).",
+  "properties": {
+    "status": {
+      "const": "ok",
+      "title": "Status",
+      "type": "string"
+    },
+    "contractVersion": {
+      "title": "Contractversion",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "idle",
+        "betting",
+        "in-flight",
+        "crashed",
+        "settled"
+      ],
+      "title": "State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "contractVersion",
+    "state"
+  ],
+  "title": "HealthResponse",
+  "type": "object"
+}

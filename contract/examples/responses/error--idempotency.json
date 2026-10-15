@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "IDEMPOTENCY_KEY_REUSED",
+    "message": "This Idempotency-Key was already used with a different request."
+  }
+}

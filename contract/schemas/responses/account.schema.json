@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/account.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "accountId": {
+      "pattern": "^acc_[A-Za-z0-9]+$",
+      "title": "Accountid",
+      "type": "string"
+    },
+    "balance": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Balance",
+      "type": "string"
+    },
+    "currency": {
+      "const": "credits",
+      "title": "Currency",
+      "type": "string"
+    },
+    "language": {
+      "title": "Language",
+      "type": "string"
+    }
+  },
+  "required": [
+    "accountId",
+    "balance",
+    "currency",
+    "language"
+  ],
+  "title": "AccountResponse",
+  "type": "object"
+}

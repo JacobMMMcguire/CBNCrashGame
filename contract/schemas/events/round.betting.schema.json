@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.betting.schema.json",
+  "$defs": {
+    "BettingData": {
+      "additionalProperties": false,
+      "properties": {
+        "commitment": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Commitment",
+          "type": "string"
+        },
+        "closesAt": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+          "title": "Closesat",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commitment",
+        "closesAt"
+      ],
+      "title": "BettingData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.betting",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/BettingData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundBettingEvent",
+  "type": "object"
+}

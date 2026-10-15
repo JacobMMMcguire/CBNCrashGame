@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/balance.updated.schema.json",
+  "$defs": {
+    "BalanceData": {
+      "additionalProperties": false,
+      "properties": {
+        "balance": {
+          "examples": [
+            "100.00"
+          ],
+          "pattern": "^\\d{1,9}\\.\\d{2}$",
+          "title": "Balance",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "bet",
+            "cashout"
+          ],
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "balance",
+        "reason"
+      ],
+      "title": "BalanceData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "balance.updated",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "data": {
+      "$ref": "#/$defs/BalanceData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "data"
+  ],
+  "title": "BalanceUpdatedEvent",
+  "type": "object"
+}

@@ -1,0 +1,16 @@
+{
+  "roundId": "r_48213",
+  "state": "settled",
+  "commitment": "9f2c4e1ab07d3c58e6f1a2b9d4c7e03f5a8b16d2c9e4f7a0b3d6c1e8f5a2b9c4",
+  "closesAt": "2026-10-15T18:04:12.350Z",
+  "launchedAt": "2026-10-15T18:04:12.350Z",
+  "growthRate": 0.12,
+  "serverTime": "2026-10-15T18:04:25.420Z",
+  "myBet": {
+    "wager": "100.00",
+    "autoCashOut": null,
+    "status": "lost"
+  },
+  "crash": 3.86,
+  "serverSeed": "c41e7b9a5d2f08e36b1c4a7d9e2f5081b3c6d9e2a5f8b1c4d7e0a3f6b9c2e5d8"
+}

@@ -77,34 +77,33 @@ The brief lists these optional enhancements: auto cash out, configurable betting
 
 | Layer | Choice | Status |
 | --- | --- | --- |
-| Server language / framework | TBD | Open, see [HANDOFF](docs/HANDOFF.md) |
-| Real-time channel | WebSocket or SSE | TBD |
-| Frontend | TBD | Open |
-| Storage | TBD (in-memory is acceptable for the MVP) | Open |
-| Testing | TBD | Open |
-| Hosting | TBD | Open |
+| Server language / framework | Python 3.11+, FastAPI, served by uvicorn | Skeleton running |
+| Real-time channel | WebSocket (`/api/v1/ws`) | Skeleton running |
+| Frontend | Plain HTML, CSS and JavaScript ES modules, no build step | Shell running |
+| Storage | In memory (a stub; persistence is TBD) | Stub |
+| Testing | pytest + httpx (FastAPI TestClient) | 63 tests |
+| Hosting | TBD | Open, see [HANDOFF](docs/HANDOFF.md) |
 
-## Project structure (planned)
+The crash-point RNG, the provably fair commitment and the ledger are **SKELETON ONLY stubs**: not random, not fair, not persistent. See [docs/SKELETON.md](docs/SKELETON.md) for what is real, what is stubbed and how to replace each stub.
+
+## Project structure
 
 ```
 CBNCrashGame/
 ├── README.md               # this file
 ├── PRODUCT.md              # product truth: users, goals, principles
 ├── DESIGN.md               # visual system: palette, type, components
-├── docs/                   # scope, workflow, contract, handoff, prompt log
-├── config/                 # game.config.*: every tunable value
-├── server/
-│   ├── config/             # config loader and validation
-│   ├── rng/                # provably fair RNG
-│   ├── engine/             # round state machine and multiplier curve
-│   ├── accounts/           # wallet, balances, idempotency store
-│   ├── api/                # HTTP routes and errors
-│   └── realtime/           # WebSocket/SSE broadcaster
+├── docs/                   # scope, workflow, contract, skeleton, handoff, prompt log
+├── config/game.json        # every tunable value
+├── contract/               # JSON examples and schemas for every request, response and event
+├── backend/
+│   ├── app/                # config, engine, rng, fairness, ledger, api, realtime, main
+│   └── tests/              # pytest suite
 ├── frontend/
-│   ├── mock_frontend.html  # static design mock (exists now)
-│   ├── i18n/               # en.*, fr.* string catalogs
-│   └── …                   # real app (structure depends on the stack)
-└── tests/
+│   ├── mock_frontend.html  # static design mock
+│   ├── index.html          # the game shell (served at /app/)
+│   ├── css/  js/  locales/ # tokens, ES modules, en/fr string catalogs
+└── scripts/                # dev.ps1, dev.sh, check_env.py, export_schemas.py
 ```
 
 ## Documentation
@@ -115,6 +114,7 @@ CBNCrashGame/
 | [docs/SCOPE.md](docs/SCOPE.md) | MVP, stretch, how the demo covers the rubric, what we will not build |
 | [docs/GAME_CONTRACT.md](docs/GAME_CONTRACT.md) | Server rules, state machine, config, API and events |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Build order with inputs, outputs and "done when" |
+| [docs/SKELETON.md](docs/SKELETON.md) | How the running skeleton is organised, what is stubbed, run and test commands, proposed contract changes |
 | [docs/PROMPTS.md](docs/PROMPTS.md) | Log of AI-assisted prompts |
 | [PRODUCT.md](PRODUCT.md) | Users, purpose, principles, success criteria |
 | [DESIGN.md](DESIGN.md) | Palette, typography, spacing, HUD components |
@@ -122,16 +122,16 @@ CBNCrashGame/
 
 ## Getting started
 
-_Coming soon. These steps will be filled in once the stack is decided._
+1. **Prerequisites:** Python 3.11 or newer. Nothing else; the frontend has no build step.
+2. **Install and run:** one script creates `.venv`, installs `requirements.txt`, checks the environment and starts the server on port 8001.
+   - Windows: `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1`
+   - macOS / Linux / Git Bash: `sh scripts/dev.sh`
+3. **Configure:** edit `config/game.json` and restart. Invalid values stop the server with a readable message.
+4. **Play:** open <http://127.0.0.1:8001/app/>. Add `?mock=1` to run fake rounds in the browser with no server game logic.
+5. **Run the tests:** `.venv\Scripts\python -m pytest` (Windows) or `.venv/bin/python -m pytest`.
+6. **Check the environment:** `.venv\Scripts\python scripts\check_env.py` reports missing packages, or packages blocked by Windows Application Control, in plain words.
 
-1. Prerequisites: **TBD**
-2. Install: **TBD**
-3. Configure: copy `config/game.config.*` (**TBD**)
-4. Run the server: **TBD**
-5. Run the frontend: **TBD**
-6. Run the tests: **TBD**
-
-To see the design mock now, open `frontend/mock_frontend.html` in any browser. It needs no server.
+The design mock still opens directly from disk: double-click `frontend/mock_frontend.html`.
 
 ## Team
 

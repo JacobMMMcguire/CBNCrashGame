@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.launched.schema.json",
+  "$defs": {
+    "LaunchedData": {
+      "additionalProperties": false,
+      "properties": {
+        "launchedAt": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+          "title": "Launchedat",
+          "type": "string"
+        },
+        "growthRate": {
+          "title": "Growthrate",
+          "type": "number"
+        }
+      },
+      "required": [
+        "launchedAt",
+        "growthRate"
+      ],
+      "title": "LaunchedData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.launched",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/LaunchedData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundLaunchedEvent",
+  "type": "object"
+}

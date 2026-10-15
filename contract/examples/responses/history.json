@@ -1,0 +1,28 @@
+{
+  "rounds": [
+    {
+      "roundId": "r_48212",
+      "crash": 1.84,
+      "myResult": {
+        "wager": "100.00",
+        "status": "lost",
+        "profit": "-100.00"
+      }
+    },
+    {
+      "roundId": "r_48211",
+      "crash": 3.12,
+      "myResult": {
+        "wager": "100.00",
+        "status": "cashed-out",
+        "multiplier": 2.47,
+        "profit": "147.00"
+      }
+    },
+    {
+      "roundId": "r_48210",
+      "crash": 12.4,
+      "myResult": null
+    }
+  ]
+}

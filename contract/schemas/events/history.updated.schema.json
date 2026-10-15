@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/history.updated.schema.json",
+  "$defs": {
+    "HistoryData": {
+      "additionalProperties": false,
+      "properties": {
+        "round": {
+          "$ref": "#/$defs/HistoryEntry"
+        }
+      },
+      "required": [
+        "round"
+      ],
+      "title": "HistoryData",
+      "type": "object"
+    },
+    "HistoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "roundId": {
+          "pattern": "^r_\\d+$",
+          "title": "Roundid",
+          "type": "string"
+        },
+        "crash": {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "title": "Crash",
+          "type": "number"
+        }
+      },
+      "required": [
+        "roundId",
+        "crash"
+      ],
+      "title": "HistoryEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "history.updated",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "data": {
+      "$ref": "#/$defs/HistoryData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "data"
+  ],
+  "title": "HistoryUpdatedEvent",
+  "type": "object"
+}

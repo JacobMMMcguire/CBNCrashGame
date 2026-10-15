@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.settled.schema.json",
+  "$defs": {
+    "SettledData": {
+      "additionalProperties": false,
+      "description": "The contract does not define a payload yet; the skeleton sends ``{}``.",
+      "properties": {},
+      "title": "SettledData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.settled",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/SettledData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundSettledEvent",
+  "type": "object"
+}

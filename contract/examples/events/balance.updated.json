@@ -1,0 +1,8 @@
+{
+  "type": "balance.updated",
+  "seq": 18264,
+  "data": {
+    "balance": "1147.00",
+    "reason": "cashout"
+  }
+}

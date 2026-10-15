@@ -2,15 +2,16 @@
 
 You are joining **Ascent**, our crash game for the Canadian Bank Note challenge at ThunderHacks 2026. This page tells you what to read, what has already been decided, and what to do first.
 
-## 1. Read in this order (about 25 minutes)
+## 1. Read in this order (about 30 minutes)
 
 1. [README.md](../README.md) (5 min): the problem, our solution and the rubric.
 2. [docs/SCOPE.md](SCOPE.md) (3 min): what we are and are not building.
 3. [docs/GAME_CONTRACT.md](GAME_CONTRACT.md) (10 min): the server rules, state machine, config, API and events. **Required reading for backend work.**
 4. [docs/WORKFLOW.md](WORKFLOW.md) (5 min): the build order and "done when" checks.
-5. Open [frontend/mock_frontend.html](../frontend/mock_frontend.html) by double-clicking it and click through all four states. **Required for frontend work.**
-6. [DESIGN.md](../DESIGN.md) and [PRODUCT.md](../PRODUCT.md): read these when you build UI or write copy.
-7. [docs/PROMPTS.md](PROMPTS.md): log every AI-assisted prompt here.
+5. [docs/SKELETON.md](SKELETON.md) (5 min): the running skeleton, what is stubbed (SKELETON ONLY), how to run and test it, and which module each track owns.
+6. Open [frontend/mock_frontend.html](../frontend/mock_frontend.html) by double-clicking it and click through all four states. **Required for frontend work.**
+7. [DESIGN.md](../DESIGN.md) and [PRODUCT.md](../PRODUCT.md): read these when you build UI or write copy.
+8. [docs/PROMPTS.md](PROMPTS.md): log every AI-assisted prompt here.
 
 ## 2. Already decided
 

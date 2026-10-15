@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/history.schema.json",
+  "$defs": {
+    "HistoryRound": {
+      "additionalProperties": false,
+      "properties": {
+        "roundId": {
+          "pattern": "^r_\\d+$",
+          "title": "Roundid",
+          "type": "string"
+        },
+        "crash": {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "title": "Crash",
+          "type": "number"
+        },
+        "myResult": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MyResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "roundId",
+        "crash",
+        "myResult"
+      ],
+      "title": "HistoryRound",
+      "type": "object"
+    },
+    "MyResult": {
+      "additionalProperties": false,
+      "properties": {
+        "wager": {
+          "examples": [
+            "100.00"
+          ],
+          "pattern": "^\\d{1,9}\\.\\d{2}$",
+          "title": "Wager",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "cashed-out",
+            "lost"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "profit": {
+          "examples": [
+            "-100.00"
+          ],
+          "pattern": "^-?\\d{1,9}\\.\\d{2}$",
+          "title": "Profit",
+          "type": "string"
+        },
+        "multiplier": {
+          "anyOf": [
+            {
+              "description": "Two decimals, floored",
+              "minimum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Present only when cashed out",
+          "title": "Multiplier"
+        }
+      },
+      "required": [
+        "wager",
+        "status",
+        "profit"
+      ],
+      "title": "MyResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "rounds": {
+      "items": {
+        "$ref": "#/$defs/HistoryRound"
+      },
+      "title": "Rounds",
+      "type": "array"
+    }
+  },
+  "required": [
+    "rounds"
+  ],
+  "title": "HistoryResponse",
+  "type": "object"
+}

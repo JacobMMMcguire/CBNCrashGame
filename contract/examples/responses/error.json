@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "TOO_LATE",
+    "message": "Round crashed before cash-out was received."
+  }
+}

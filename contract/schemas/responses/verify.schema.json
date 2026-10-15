@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/verify.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "commitment": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Commitment",
+      "type": "string"
+    },
+    "serverSeed": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Serverseed",
+      "type": "string"
+    },
+    "hmac": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Hmac",
+      "type": "string"
+    },
+    "targetRtp": {
+      "title": "Targetrtp",
+      "type": "number"
+    },
+    "maxMultiplier": {
+      "title": "Maxmultiplier",
+      "type": "number"
+    },
+    "crash": {
+      "description": "Two decimals, floored",
+      "minimum": 1.0,
+      "title": "Crash",
+      "type": "number"
+    },
+    "valid": {
+      "title": "Valid",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "roundId",
+    "commitment",
+    "serverSeed",
+    "hmac",
+    "targetRtp",
+    "maxMultiplier",
+    "crash",
+    "valid"
+  ],
+  "title": "VerifyResponse",
+  "type": "object"
+}

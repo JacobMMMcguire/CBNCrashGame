@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.tick.schema.json",
+  "$defs": {
+    "TickData": {
+      "additionalProperties": false,
+      "properties": {
+        "multiplier": {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "title": "Multiplier",
+          "type": "number"
+        },
+        "elapsedMs": {
+          "minimum": 0,
+          "title": "Elapsedms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "multiplier",
+        "elapsedMs"
+      ],
+      "title": "TickData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.tick",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/TickData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundTickEvent",
+  "type": "object"
+}

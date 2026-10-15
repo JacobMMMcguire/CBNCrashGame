@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/place_bet.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "betId": {
+      "pattern": "^b_\\d+$",
+      "title": "Betid",
+      "type": "string"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "wager": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Wager",
+      "type": "string"
+    },
+    "autoCashOut": {
+      "anyOf": [
+        {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Autocashout"
+    },
+    "status": {
+      "const": "active",
+      "title": "Status",
+      "type": "string"
+    },
+    "balance": {
+      "examples": [
+        "100.00"
+      ],
+      "pattern": "^\\d{1,9}\\.\\d{2}$",
+      "title": "Balance",
+      "type": "string"
+    }
+  },
+  "required": [
+    "betId",
+    "roundId",
+    "wager",
+    "autoCashOut",
+    "status",
+    "balance"
+  ],
+  "title": "BetResponse",
+  "type": "object"
+}

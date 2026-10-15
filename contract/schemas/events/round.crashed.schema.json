@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "events/round.crashed.schema.json",
+  "$defs": {
+    "CrashedData": {
+      "additionalProperties": false,
+      "properties": {
+        "crash": {
+          "description": "Two decimals, floored",
+          "minimum": 1.0,
+          "title": "Crash",
+          "type": "number"
+        },
+        "serverSeed": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Serverseed",
+          "type": "string"
+        },
+        "commitment": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Commitment",
+          "type": "string"
+        }
+      },
+      "required": [
+        "crash",
+        "serverSeed",
+        "commitment"
+      ],
+      "title": "CrashedData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "round.crashed",
+      "title": "Type",
+      "type": "string"
+    },
+    "seq": {
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/CrashedData"
+    }
+  },
+  "required": [
+    "type",
+    "seq",
+    "roundId",
+    "data"
+  ],
+  "title": "RoundCrashedEvent",
+  "type": "object"
+}

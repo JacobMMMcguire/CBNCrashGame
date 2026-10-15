@@ -1,0 +1,60 @@
+/* Design tokens from DESIGN.md. Mission (dark) is the default theme; Day is light. */
+:root {
+  --font-ui: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+
+  --radius-panel: 14px; --radius-control: 10px; --radius-chip: 999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms; --dur: 260ms;
+}
+
+:root,
+:root[data-theme="mission"] {
+  color-scheme: dark;
+  --bg: #090F1F;
+  --bg-stage: #0B1326;
+  --surface: #101930;
+  --surface-2: #17213C;
+  --line: #24314F;
+  --line-strong: #5B6D96;
+  --ink: #EEF2FA;
+  --ink-2: #B3BDD3;
+  --ink-3: #8F9AB5;
+  --grid: #18233E;
+  --grid-major: #283759;
+  --accent: #FFB547;
+  --accent-line: #FFB547;
+  --accent-wash: rgba(255, 181, 71, 0.14);
+  --on-accent: #1B1305;
+  --win: #4BE3A4;
+  --win-wash: rgba(75, 227, 164, 0.12);
+  --abort: #FF7D6E;
+  --abort-wash: rgba(255, 125, 110, 0.12);
+}
+
+:root[data-theme="day"] {
+  color-scheme: light;
+  --bg: #E8EDF4;
+  --bg-stage: #F7F9FC;
+  --surface: #FFFFFF;
+  --surface-2: #EEF2F8;
+  --line: #CBD3E1;
+  --line-strong: #7D8AA3;
+  --ink: #0B1430;
+  --ink-2: #34425F;
+  --ink-3: #4F5B78;
+  --grid: #E3E8F1;
+  --grid-major: #C7D0DF;
+  --accent: #F4A53C;
+  --accent-line: #8F5200;
+  --accent-wash: rgba(244, 165, 60, 0.16);
+  --on-accent: #1B1305;
+  --win: #06774A;
+  --win-wash: rgba(6, 119, 74, 0.10);
+  --abort: #BE3326;
+  --abort-wash: rgba(190, 51, 38, 0.09);
+}
