@@ -42,4 +42,4 @@ _Tech stack and setup instructions coming soon._
 
 ## Team
 
-_Add team members here._
+_Jacob McGuire, Sineru Dulmina and Ellison Naz._
