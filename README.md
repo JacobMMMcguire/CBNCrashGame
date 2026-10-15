@@ -39,7 +39,20 @@ The script creates `.venv`, installs `requirements.txt`, checks the environment 
 | **Modularity (10)** | Every tunable value in one config file; English and French string catalogs; the engine, ledger, RNG, fairness, transport and UI are separate modules behind interfaces |
 | **Creativity & Polish (20)** | The launch: smoke, lift-off, clouds, star streaks, a planet flyby every 10× in true order from Earth, an explosion, and an astronaut who tumbles away when you eject; CC0 sound effects |
 
-**Optional enhancements built:** auto cash out (server-side), configurable betting options (limits and quick chips from config), session history and stats, analytics (session result, best eject, wagered), accessibility, localization (EN/FR), and a **provably fair** verifier that recomputes each round in your browser. **Multiplayer:** rounds are shared, so everyone connected sees the same rocket. Each player has a pilot name (a callsign until they choose one), the read-data panel shows who is in the launch with their wager and result plus how many are online, a live feed announces other players' cash outs, and their astronauts eject from the rocket too. To try it on one computer, open a second tab with `?player=2`. **Not built:** bonus rounds (cut to protect polish).
+**Optional enhancements built:** auto cash out (server-side), configurable betting options (limits and quick chips from config), session history and stats, analytics (session result, best eject, wagered), accessibility, localization (EN/FR), multiplayer (below), and a **provably fair** verifier that recomputes each round in your browser. **Not built:** bonus rounds (cut to protect polish).
+
+## Multiplayer
+
+Everyone connected to the same server flies the same rocket and sees each other:
+
+- **Pilot names:** a callsign such as "Comet-27" until you choose a name in Mission control → Pilots.
+- **Who's flying:** the green counter shows *pilots in this launch / online*; the desktop panel lists each pilot's wager and result as it happens.
+- **Live feed:** "Rocket Sam cashed out at 2.31× · +13.10" appears on the stage, and their astronaut ejects from the rocket too.
+- **Private stays private:** others see your name, wager and result, never your account id or auto-eject target.
+
+To play together on the same Wi-Fi, start the server with `ASCENT_HOST=0.0.0.0` and have friends open `http://<your PC's IP>:8001/app/`. To try it alone on one computer, open a second tab with `?player=2`.
+
+## Mission control
 
 **Mission control** (the ☰ button) holds the rules, the odds table, the provably fair verifier and a **Transparency** section that explains each term in the brief's glossary: RNG, RTP, auto cash out and server idempotence.
 
@@ -62,7 +75,7 @@ CBNCrashGame/
 ├── config/game.json        # every tunable value
 ├── contract/               # JSON examples and schemas for every request, response and event
 ├── backend/
-│   ├── app/                # config, engine, rng, fairness, ledger, api, realtime, main
+│   ├── app/                # config, engine, rng, fairness, ledger, players, api, realtime, main
 │   └── tests/              # pytest suite
 ├── frontend/
 │   ├── index.html          # the game (served at /app/)
@@ -82,10 +95,10 @@ CBNCrashGame/
 | --- | --- |
 | [docs/GAME_CONTRACT.md](docs/GAME_CONTRACT.md) | Server rules, state machine, config, crash-point formula, API and events |
 | [docs/SKELETON.md](docs/SKELETON.md) | How the code is organised, what is real and what is still in memory, run and test commands, contract changes |
-| [DESIGN.md](DESIGN.md) | Palette, type, layout, motion and sound |
+| [DESIGN.md](DESIGN.md) | Palette, type, layout, the launch, multiplayer, motion and sound |
 | [docs/AML_HANDOFF.md](docs/AML_HANDOFF.md) | For the AML export work: what the game stores today and what is missing |
 | [docs/HANDOFF.md](docs/HANDOFF.md) | Original team handoff and demo checklist |
-| [PRODUCT.md](PRODUCT.md) | Users, purpose, principles |
+| [PRODUCT.md](PRODUCT.md) | Users, purpose, positioning, principles, terminology |
 
 ## Credits
 
@@ -93,4 +106,4 @@ Sound effects: [Kenney](https://www.kenney.nl) "Sci-Fi Sounds" and "Interface So
 
 ## Team
 
-_Add team members here._
+Jacob McGuire, Sineru Dulmina and Ellison Naz.

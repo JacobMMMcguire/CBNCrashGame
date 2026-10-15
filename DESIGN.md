@@ -84,6 +84,19 @@ components:
   pill:
     rounded: "{rounded.pill}"
     fontFamily: "{typography.data.fontFamily}"
+  crowd-chip:
+    backgroundColor: "rgb(75 227 164 / 0.1)"
+    textColor: "{colors.eject}"
+    rounded: "{rounded.pill}"
+    note: "pilots in this launch / online; opens the Pilots sheet"
+  roster-row:
+    backgroundColor: "{colors.panel}"
+    rounded: "9px"
+    note: "colour dot, name, wager, result; your row has a flame-yellow edge"
+  feed-line:
+    backgroundColor: "rgb(10 3 24 / 0.7)"
+    rounded: "9px"
+    note: "other pilots' cash outs, bottom-left of the stage, fades after 4.5 s"
 ---
 
 # Design System: Ascent
@@ -99,6 +112,12 @@ This file describes what ships in `frontend/` (tokens in `frontend/css/tokens.cs
 - **Phone (portrait):** read data on top, the flight stage in the middle, controls at the bottom.
 - **Desktop, tablet or phone in landscape:** the stage on the left; read data above controls on the right.
 - Short screens drop the least essential pieces first: quick-bet chips, sub-labels, the "My flights" list.
+
+**The read-data panel** answers the brief's display requirement in its own words: **Balance**, then a row of **Your wager**, the live **Multiplier** and the **Payout** you would get now. Below that come session stats, recent crash points, the online counter, the "This launch" roster (desktop) and the provably-fair chip.
+
+**One action button** does what the round allows: *Place bet* (flame yellow), *Bet placed* (quiet), *Eject · Cash out 26.20* (green, pulsing), *Bet next launch*, *Cancel next bet*, and *Refill play credits* (violet) when a player cannot afford the minimum bet.
+
+**Connection badge:** nothing shows while the connection is healthy. A badge appears only for Connecting…, Reconnecting…, Offline, or Mock mode.
 
 **Refuses:** neon casino styling, chrome gradients, confetti, and anything that suggests the client knows the crash point (no pre-crash shake or warning).
 
@@ -128,8 +147,18 @@ The look is dark only, on purpose: the game is a night sky.
 | Flyby | A body passes every 10×, in true order outward from Earth: Moon, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, Proxima Centauri, Kepler-452b, then the Andromeda Galaxy (100×) and a quasar (1000×); the readout label announces it |
 | Eject | An astronaut kicks clear and tumbles away, arms and legs flailing; a green toast with the profit |
 | Explosion | Fireball, debris, smoke, a shockwave ring and a brief flash; the multiplier turns red |
+| Other pilots | Their cash outs appear as feed lines ("Rocket Sam cashed out at 2.31× · +13.10") and as smaller, fainter astronauts leaving the rocket |
 
 Visual speed follows the flight clock and levels off at a top speed. It does not follow the exponential multiplier, so the picture never runs away.
+
+## Multiplayer
+
+Everyone connected flies the same rocket. Presence is kept quiet so it never competes with the flight:
+
+- **Pilots** have a name (a callsign such as "Comet-27" until they choose one in Mission control → Pilots) and a stable colour dot derived from their public id.
+- **The crowd chip** (green, next to the recent crash points) shows *pilots in this launch / online* and opens the Pilots sheet, which lists everyone on phones.
+- **The roster** ("This launch", desktop) lists each pilot's wager and result: *riding* in muted ink, a cash out in eject green with the multiplier and profit, a loss in abort red. Biggest wager first; your row has a flame-yellow edge.
+- **The feed** shows other pilots' cash outs at the bottom-left of the stage and fades after a few seconds.
 
 ## Motion and accessibility
 
