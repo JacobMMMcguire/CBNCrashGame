@@ -9,6 +9,7 @@ These notes are for the teammates building the staff-only dataset export for the
 | Stack | Python 3.11+, FastAPI, uvicorn; plain JavaScript frontend | `backend/app/`, `frontend/` |
 | Identity | No sign-up and no staff. Each browser invents a guest token; the server derives an account id from it: `acc_` + the first 12 hex digits of SHA-256(token) | `backend/app/auth.py` |
 | Roles | None. Every valid token is a player | `backend/app/auth.py`, `api.current_account` |
+| Public identity | Other players see a `playerId` (hash of the account id) and a pilot name the player can set; neither is personal data | `backend/app/players.py` |
 | Storage | In memory only. A restart wipes accounts, bets and history | `backend/app/ledger.py` (`InMemoryLedger`), `engine._finished` |
 | History kept | The last 100 finished rounds (`HISTORY_KEEP`) | `backend/app/engine.py` |
 | Money | Integer hundredths of a play credit (`10000` = 100.00 credits). The API sends strings with two decimals, such as `"100.00"` | `backend/app/money.py` |

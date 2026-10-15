@@ -20,6 +20,9 @@ export const initialState = {
   queued: false,           // "Bet next launch": place the bet as soon as boarding opens
   session: { startedAt: Date.now(), rounds: 0, wagered: 0, net: 0, best: null },
   verify: null,
+  me: null,                // { playerId, name }
+  players: [],             // round.players roster: [{ playerId, name, wager, status, multiplier?, payout? }]
+  online: 0,               // distinct players connected
   notice: null,            // { text, n }: a one-off toast (e.g. the testing cheat)            // { roundId, status: "loading" | "done" | "error", data?, check? }
 };
 

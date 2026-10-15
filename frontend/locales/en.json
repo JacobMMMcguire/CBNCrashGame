@@ -192,5 +192,19 @@
   "btn.refill": "Refill play credits",
   "btn.refillSub": "Out of credits · back to {b}",
   "toast.refilled": "Play credits refilled: {b}",
-  "errors.REFILL_NOT_NEEDED": "Play credits can be refilled only when you cannot afford the minimum bet."
+  "errors.REFILL_NOT_NEEDED": "Play credits can be refilled only when you cannot afford the minimum bet.",
+
+  "players.title": "This launch",
+  "players.pilots": "Pilots",
+  "players.yourName": "Your pilot name",
+  "players.save": "Save",
+  "players.saved": "Saved. Other players now see this name.",
+  "players.nameHint": "Other players see this name next to your bets.",
+  "players.nameError": "Use 2 to 16 letters, digits, spaces, dots, dashes or underscores.",
+  "players.count": "{n} in · {o} online",
+  "players.crowdAria": "{n} players in this launch, {o} online. Show pilots.",
+  "players.empty": "No bets on this launch yet.",
+  "players.riding": "riding",
+  "players.you": "{name} (you)",
+  "players.feed": "cashed out at {m} · +{p}"
 }

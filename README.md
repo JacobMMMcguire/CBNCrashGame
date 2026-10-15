@@ -35,11 +35,11 @@ The script creates `.venv`, installs `requirements.txt`, checks the environment 
 | Rubric | What to look at |
 | --- | --- |
 | **Presentation (10)** | One screen that never scrolls, on a phone and on a desktop; every state has its own look, sound and screen-reader message; reduced-motion support; keyboard play |
-| **Backend (10)** | The server is the authority for the clock, crash point, cash-out timing and balance; idempotency keys on bet and cash out; auto cash out runs on the server; a failed round refunds active bets; 74 tests including a 200,000-round RTP simulation |
+| **Backend (10)** | The server is the authority for the clock, crash point, cash-out timing and balance; idempotency keys on bet and cash out; auto cash out runs on the server; a failed round refunds active bets; live multiplayer roster over WebSocket; 80 tests including a 200,000-round RTP simulation |
 | **Modularity (10)** | Every tunable value in one config file; English and French string catalogs; the engine, ledger, RNG, fairness, transport and UI are separate modules behind interfaces |
 | **Creativity & Polish (20)** | The launch: smoke, lift-off, clouds, star streaks, a planet flyby every 10× in true order from Earth, an explosion, and an astronaut who tumbles away when you eject; CC0 sound effects |
 
-**Optional enhancements built:** auto cash out (server-side), configurable betting options (limits and quick chips from config), session history and stats, analytics (session result, best eject, wagered), accessibility, localization (EN/FR), and a **provably fair** verifier that recomputes each round in your browser. **Not built:** bonus rounds (cut to protect polish). Rounds are shared, so everyone connected sees the same rocket, but other players' bets are not shown.
+**Optional enhancements built:** auto cash out (server-side), configurable betting options (limits and quick chips from config), session history and stats, analytics (session result, best eject, wagered), accessibility, localization (EN/FR), and a **provably fair** verifier that recomputes each round in your browser. **Multiplayer:** rounds are shared, so everyone connected sees the same rocket. Each player has a pilot name (a callsign until they choose one), the read-data panel shows who is in the launch with their wager and result plus how many are online, a live feed announces other players' cash outs, and their astronauts eject from the rocket too. To try it on one computer, open a second tab with `?player=2`. **Not built:** bonus rounds (cut to protect polish).
 
 **Mission control** (the ☰ button) holds the rules, the odds table, the provably fair verifier and a **Transparency** section that explains each term in the brief's glossary: RNG, RTP, auto cash out and server idempotence.
 
@@ -53,7 +53,7 @@ Ascent uses play credits only. It has no deposits or payments. It includes respo
 | Real-time | WebSocket (`/api/v1/ws`) with reconnect and resync |
 | Frontend | Plain HTML, CSS and JavaScript ES modules; the launch is drawn on a 2D canvas; sound through Web Audio |
 | Storage | In memory: balances and history reset when the server restarts |
-| Tests | pytest + httpx (FastAPI TestClient), 74 tests |
+| Tests | pytest + httpx (FastAPI TestClient), 80 tests |
 
 ## Project structure
 

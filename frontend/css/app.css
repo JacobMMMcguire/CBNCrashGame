@@ -251,6 +251,64 @@ body[data-phase="boarding"] .readout__bar { visibility: visible; }
 .data__pos[data-state="lost"] .stat--payout { border-color: rgb(255 107 125 / 0.35); }
 .data__pos[data-hot] #posMult { color: #fff3c4; }
 
+/* Multiplayer: online counter, roster, live feed */
+.data__recent-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.data__recent-row .pills { flex: 1; min-width: 0; }
+.crowd {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px 3px 7px; border-radius: 99px;
+  background: rgb(75 227 164 / 0.1); border: 1px solid rgb(75 227 164 / 0.35);
+  color: var(--eject); font: 700 12px var(--mono);
+}
+.crowd svg { width: 16px; height: 16px; }
+.crowd:hover { background: rgb(75 227 164 / 0.18); }
+
+.data__roster { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 6px; }
+.data__roster-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.roster { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; align-content: start; overflow: hidden; }
+.roster__row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px;
+  padding: 5px 9px; border-radius: 9px; background: var(--panel-2);
+  font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.roster__row.is-me { background: rgb(255 216 74 / 0.08); box-shadow: inset 2px 0 0 var(--flame); }
+.roster__dot { width: 8px; height: 8px; border-radius: 50%; }
+.roster__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster__wager { color: var(--ink-2); }
+.roster__result { min-width: 7.5em; text-align: right; font-weight: 650; }
+.roster__result.is-riding { color: var(--ink-3); font-weight: 500; }
+.roster__empty { color: var(--ink-3); font-size: 13px; }
+
+.feed {
+  position: absolute; z-index: 3; left: 12px; bottom: 14px; margin: 0; padding: 0; list-style: none;
+  display: grid; gap: 5px; max-width: min(60%, 300px); pointer-events: none;
+}
+.feed li {
+  padding: 5px 10px; border-radius: 9px; font-size: 12.5px;
+  background: rgb(10 3 24 / 0.7); border: 1px solid rgb(75 227 164 / 0.3); color: var(--ink);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  animation: feed 4.5s ease both;
+}
+.feed b { color: var(--eject); font-weight: 700; }
+@keyframes feed {
+  0% { opacity: 0; transform: translateX(-8px); }
+  8%, 80% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@container (max-width: 560px) { .feed { bottom: 64px; max-width: 72%; } }
+
+.name-form { display: grid; gap: 6px; margin-bottom: 12px; }
+.name-form__row { display: flex; gap: 8px; }
+.name-form__row input {
+  flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 10px;
+  background: rgb(0 0 0 / 0.3); border: 1px solid var(--line-strong); color: var(--ink); font-weight: 600;
+}
+.name-form__save { padding: 0 16px; border-radius: 10px; border: 0; background: var(--flame); color: var(--on-flame); font-weight: 750; }
+.name-form__hint { margin: 0; font-size: 12.5px; }
+.name-form__hint.is-error { color: var(--abort); }
+.roster--sheet { overflow: visible; }
+
 .pills {
   list-style: none; margin: 0; padding: 0;
   display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden;
@@ -466,7 +524,7 @@ kbd {
   .data__stats.wide-only { display: grid !important; }
 
   .data {
-    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
     align-content: start; gap: 14px; padding: var(--pad);
   }
   .data__head { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
@@ -499,6 +557,8 @@ kbd {
 .data__pos[data-hot] #posMult { color: #fff3c4; }
 
 .pills { flex-wrap: wrap; max-height: 62px; mask-image: none; -webkit-mask-image: none; }
+  .data__recent-row { align-items: flex-start; }
+  .flights { max-height: 96px; }
   .data__flights { min-height: 0; overflow: hidden; }
   .controls { padding: var(--pad); }
   .action { min-height: 64px; }
@@ -541,7 +601,7 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
   .action[data-mode="eject"] { animation: none; }
-  .toast { animation-name: fade; }
+  .toast, .feed li { animation-name: fade; }
   .readout__label[data-flash] { animation: none; }
 }
 @keyframes fade {

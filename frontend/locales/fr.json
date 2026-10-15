@@ -192,5 +192,19 @@
   "btn.refill": "Recharger les crédits",
   "btn.refillSub": "Plus de crédits · retour à {b}",
   "toast.refilled": "Crédits de jeu rechargés : {b}",
-  "errors.REFILL_NOT_NEEDED": "La recharge n'est possible que si vous ne pouvez plus payer la mise minimale."
+  "errors.REFILL_NOT_NEEDED": "La recharge n'est possible que si vous ne pouvez plus payer la mise minimale.",
+
+  "players.title": "Ce lancement",
+  "players.pilots": "Pilotes",
+  "players.yourName": "Votre nom de pilote",
+  "players.save": "Enregistrer",
+  "players.saved": "Enregistré. Les autres joueurs voient ce nom.",
+  "players.nameHint": "Les autres joueurs voient ce nom à côté de vos mises.",
+  "players.nameError": "Utilisez de 2 à 16 lettres, chiffres, espaces, points, tirets ou traits de soulignement.",
+  "players.count": "{n} en jeu · {o} en ligne",
+  "players.crowdAria": "{n} joueurs dans ce lancement, {o} en ligne. Voir les pilotes.",
+  "players.empty": "Aucune mise sur ce lancement pour l'instant.",
+  "players.riding": "en vol",
+  "players.you": "{name} (vous)",
+  "players.feed": "a encaissé à {m} · +{p}"
 }

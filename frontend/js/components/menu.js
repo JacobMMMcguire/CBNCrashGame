@@ -4,6 +4,7 @@
 
 import { applyI18n, formatCredits, formatMultiplier, formatNumber, formatPercent, t } from "../i18n.js";
 import { setText } from "../store.js";
+import { rosterRow } from "./data.js";
 
 const $ = (id) => document.getElementById(id);
 const ODDS_TARGETS = [1.5, 2, 3, 5, 10, 100, 1000];
@@ -80,6 +81,22 @@ export function mountMenu(store, actions) {
     );
   }
 
+  // ---------- Pilots: your name and everyone in this launch ----------
+  const nameForm = $("nameForm"), nameInput = $("pilotName"), nameHint = $("nameHint");
+  const sheetRoster = $("sheetRoster"), sheetCount = $("sheetRosterCount");
+  nameForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    nameHint.classList.remove("is-error");
+    try {
+      await actions.setName(nameInput.value);
+      nameHint.textContent = t("players.saved");
+    } catch (err) {
+      nameHint.classList.add("is-error");
+      nameHint.textContent = t("players.nameError");
+    }
+  });
+  let lastMe = null, lastCrew = null;
+
   let lastLang = null, lastVerify = null;
   store.subscribe((s) => {
     langSwitch.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === s.lang)));
@@ -89,6 +106,18 @@ export function mountMenu(store, actions) {
       applyI18n(dialog);
       renderOdds(s);
       lastVerify = null;
+    }
+    if (s.me && s.me !== lastMe) {
+      lastMe = s.me;
+      if (document.activeElement !== nameInput) nameInput.value = s.me.name;
+    }
+    setText(sheetCount, t("players.count", { n: s.players.length, o: Math.max(s.online, 1) }));
+    if (s.players !== lastCrew || s.lang !== sheetRoster.dataset.lang) {
+      lastCrew = s.players;
+      sheetRoster.dataset.lang = s.lang;
+      sheetRoster.replaceChildren(...(s.players.length
+        ? s.players.map((p) => rosterRow(p, s.me?.playerId))
+        : [Object.assign(document.createElement("li"), { className: "roster__empty", textContent: t("players.empty") })]));
     }
     if (s.verify !== lastVerify) {
       lastVerify = s.verify;
@@ -115,6 +144,11 @@ export function mountMenu(store, actions) {
   }
 
   return {
+    /** Open the dialog at the Pilots section (name and roster). */
+    openPilots() {
+      if (!dialog.open) dialog.showModal();
+      dialog.querySelector(".sheet__body").scrollTop = $("pilotsSec").offsetTop - 6;
+    },
     /** Open the dialog at the provably fair section and check a round (default: the latest finished one). */
     openFair(roundId) {
       const s = store.get();

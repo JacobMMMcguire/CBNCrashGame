@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Callable
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -40,10 +41,22 @@ class Broadcaster:
 
     def __init__(self) -> None:
         self._conns: set[_Connection] = set()
+        # Called when the set of connected players changes; main.py points it at the engine.
+        self.on_presence: Callable[[], None] = lambda: None
 
     @property
     def connection_count(self) -> int:
         return len(self._conns)
+
+    def online_count(self) -> int:
+        """Distinct players connected (several tabs of one player count once)."""
+        return len({c.account_id for c in self._conns})
+
+    def _presence_changed(self) -> None:
+        try:
+            self.on_presence()
+        except Exception:  # presence is cosmetic; never let it break a connection
+            log.exception("presence update failed")
 
     def publish(self, event: dict, account_id: str | None = None) -> None:
         for conn in list(self._conns):
@@ -67,6 +80,7 @@ class Broadcaster:
         conn = _Connection(ws, account_id)
         self._conns.add(conn)
         conn.sender = asyncio.create_task(self._send_loop(conn))
+        self._presence_changed()
         try:
             while True:
                 await ws.receive_text()  # ignored; keeps the socket read so disconnects are seen
@@ -75,6 +89,7 @@ class Broadcaster:
         finally:
             self._conns.discard(conn)
             conn.sender.cancel()
+            self._presence_changed()
 
     async def _send_loop(self, conn: _Connection) -> None:
         try:

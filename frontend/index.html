@@ -58,6 +58,7 @@
       <p class="readout__note" id="readNote"></p>
     </div>
 
+    <ol class="feed" id="feed" aria-hidden="true"></ol>
     <div class="toasts" id="toasts"></div>
     <p class="sr-only" id="status" role="status" aria-live="polite"></p>
     <p class="banner" id="bootError" role="alert" hidden></p>
@@ -104,7 +105,21 @@
 
     <div class="data__recent">
       <h3 class="label wide-only" data-i18n="data.recent">Recent launches</h3>
-      <ol class="pills" id="pills" aria-label="Recent crash points" data-i18n-attr="aria-label:data.recentAria"></ol>
+      <div class="data__recent-row">
+        <button type="button" class="crowd" id="crowd">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" fill="currentColor"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5z" fill="currentColor"/><circle cx="17" cy="9" r="2.5" fill="currentColor" opacity=".6"/><path d="M15.5 14.2c3 .1 5.5 2 5.5 4.8h-4.2" fill="currentColor" opacity=".6"/></svg>
+          <span id="crowdText">1</span>
+        </button>
+        <ol class="pills" id="pills" aria-label="Recent crash points" data-i18n-attr="aria-label:data.recentAria"></ol>
+      </div>
+    </div>
+
+    <div class="data__roster wide-only">
+      <div class="data__roster-head">
+        <h3 class="label" data-i18n="players.title">This launch</h3>
+        <span class="label" id="rosterCount"></span>
+      </div>
+      <ol class="roster" id="roster"></ol>
     </div>
 
     <div class="data__flights wide-only">
@@ -172,6 +187,20 @@
     <section class="sheet__sec">
       <h3 data-i18n="menu.language">Language</h3>
       <div class="seg" id="langSwitch" role="group" aria-labelledby="menuTitle"></div>
+    </section>
+
+    <section class="sheet__sec" id="pilotsSec">
+      <h3 data-i18n="players.pilots">Pilots</h3>
+      <form class="name-form" id="nameForm" novalidate>
+        <label class="label" for="pilotName" data-i18n="players.yourName">Your pilot name</label>
+        <div class="name-form__row">
+          <input id="pilotName" type="text" maxlength="16" autocomplete="nickname" spellcheck="false">
+          <button type="submit" class="name-form__save" data-i18n="players.save">Save</button>
+        </div>
+        <p class="muted name-form__hint" id="nameHint" data-i18n="players.nameHint">Other players see this name next to your bets.</p>
+      </form>
+      <p class="label" id="sheetRosterCount"></p>
+      <ol class="roster roster--sheet" id="sheetRoster"></ol>
     </section>
 
     <section class="sheet__sec">

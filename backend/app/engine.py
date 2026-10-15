@@ -14,7 +14,7 @@ import asyncio
 import logging
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Callable, Protocol
 
 from .clock import Clock, iso_ms
 from .config import GameConfig
@@ -22,10 +22,11 @@ from .errors import GameError
 from .fairness import FairnessScheme, Verification
 from .ledger import Bet, Ledger
 from .money import crash_offset_ms, elapsed_for_multiplier_ms, format_credits, multiplier_at, multiplier_to_float
+from .players import roster_entry
 from .rng import CrashPointProvider, RoundSecret
 from .schemas import (
     BalanceData, BettingData, CashoutData, CrashedData, HistoryData, HistoryEntry,
-    LaunchedData, SettledData, TickData, wire,
+    LaunchedData, PlayersData, SettledData, TickData, wire,
 )
 
 log = logging.getLogger("ascent.engine")
@@ -106,6 +107,8 @@ class RoundEngine:
         self.sink: EventSink = sink or NullSink()
         self._round_counter = 0
         self._finished: OrderedDict[str, Round] = OrderedDict()
+        # How many distinct players are connected; main.py points this at the broadcaster.
+        self.online_count: Callable[[], int] = lambda: 0
         self.round = self._new_round()
 
     # ---------- State machine ----------
@@ -137,6 +140,7 @@ class RoundEngine:
         r = self.round
         r.closes_at = self.clock.now_ms() + self.config.bettingWindowMs
         self._emit("round.betting", BettingData(commitment=r.commitment, closesAt=iso_ms(r.closes_at)))
+        self.publish_roster()
 
     def launch(self) -> None:
         self._transition(IN_FLIGHT)
@@ -169,6 +173,7 @@ class RoundEngine:
             "round.crashed",
             CrashedData(crash=multiplier_to_float(r.crash), serverSeed=r.secret.server_seed, commitment=r.commitment),
         )
+        self.publish_roster()
 
     def settle(self) -> None:
         r = self.round
@@ -256,6 +261,7 @@ class RoundEngine:
         bet = self.ledger.place_bet(account_id, round_id, wager, auto_cash_out)
         balance = self.ledger.get_account(account_id).balance
         self._emit_private(account_id, "balance.updated", BalanceData(balance=format_credits(balance), reason="bet"))
+        self.publish_roster()
         return bet, balance
 
     def cash_out(self, account_id: str, round_id: str) -> tuple[Bet, int]:
@@ -313,6 +319,18 @@ class RoundEngine:
         r.crash_at -= shift
         log.warning("%s: dev skip +%s (multiplier now %s)", r.round_id, add_hundredths, current + add_hundredths)
         return r.launched_at, multiplier_at(now - r.launched_at, self.config.growthRate)
+
+    # ---------- Multiplayer ----------
+
+    def roster(self) -> list[dict]:
+        """Every bet in the current launch as other players see it, biggest wager first."""
+        bets = sorted(self.ledger.bets_for_round(self.round.round_id), key=lambda b: (-b.wager, b.bet_id))
+        return [roster_entry(b, self.ledger.get_account(b.account_id)) for b in bets]
+
+    def publish_roster(self) -> None:
+        """Broadcast round.players when a bet, cash out, crash, rename or new round changes
+        the roster, and when someone connects or disconnects."""
+        self._emit("round.players", PlayersData(players=self.roster(), online=self.online_count()))
 
     # ---------- Read models (called by the API) ----------
 
@@ -391,6 +409,7 @@ class RoundEngine:
             )
             balance = self.ledger.get_account(account_id).balance
             self._emit_private(account_id, "balance.updated", BalanceData(balance=format_credits(balance), reason="cashout"))
+            self.publish_roster()
         return bet
 
     def _emit(self, type_: str, data, with_round_id: bool = True) -> None:

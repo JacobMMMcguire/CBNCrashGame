@@ -208,12 +208,14 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     }
   }
 
-  function eject() {
+  /** An astronaut leaves the rocket. Other players' astronauts are smaller and fainter than yours. */
+  function eject({ mine = true } = {}) {
     if (mode !== "flight" || !rocketAlive) return;
+    if (!mine && astronauts.length > 8) return;
     // The astronaut kicks clear of the cockpit, then tumbles away as the rocket climbs on.
     const side = Math.random() < 0.5 ? -1 : 1;
     astronauts.push({ x: padX, y: rocketScreenY() - RH * 0.7, vx: side * rand(0.4, 0.55) * Math.min(W, 700), vy: -H * 0.2,
-      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10) });
+      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), scale: mine ? 1 : 0.62, alpha: mine ? 1 : 0.75 });
   }
 
   // ---------- Per-frame update ----------
@@ -415,7 +417,11 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     }
     drawPuffs(true);
     drawClouds(true);
-    for (const c of astronauts) drawAstronaut(ctx, c.x, c.y, RH * 0.3, reducedMotion ? c.phase : c.age + c.phase, reducedMotion ? 0 : c.rot);
+    for (const c of astronauts) {
+      ctx.globalAlpha = c.alpha;
+      drawAstronaut(ctx, c.x, c.y, RH * 0.3 * c.scale, reducedMotion ? c.phase : c.age + c.phase, reducedMotion ? 0 : c.rot);
+      ctx.globalAlpha = 1;
+    }
     drawFireball();
     drawSparks();
 

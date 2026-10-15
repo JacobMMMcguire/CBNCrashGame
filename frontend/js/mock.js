@@ -63,6 +63,15 @@ export async function createMockBackend() {
     listener?.(ev);
   }
 
+  const ME = { playerId: "p_0000000001", name: "Mock pilot" };
+  function emitRoster() {
+    const players = bet ? [{
+      ...ME, wager: credits(bet.wager), status: bet.status,
+      ...(bet.status === "cashed-out" ? { multiplier: bet.multiplier / 100, payout: credits(bet.payout) } : {}),
+    }] : [];
+    listener?.({ type: "round.players", seq: ++seq, roundId: round.roundId, data: { players, online: 1 } });
+  }
+
   function startRound() {
     roundNo += 1;
     const now = Date.now();
@@ -72,6 +81,7 @@ export async function createMockBackend() {
     };
     bet = null;
     emit("round.betting", { commitment, closesAt: iso(round.closesAt) });
+    emitRoster();
     setTimeout(launch, config.bettingWindowMs);
   }
 
@@ -99,6 +109,7 @@ export async function createMockBackend() {
       else bet.status = "lost";
     }
     emit("round.crashed", { crash: round.crash / 100, serverSeed: seed, commitment });
+    emitRoster();
     round.state = "settled";
     let myResult = null;
     if (bet) {
@@ -119,6 +130,7 @@ export async function createMockBackend() {
     balance += bet.payout;
     emit("round.cashout", { betId: bet.betId, multiplier: m / 100, payout: credits(bet.payout), auto });
     emit("balance.updated", { balance: credits(balance), reason: "cashout" });
+    emitRoster();
   }
 
   function cashOutResponse() {
@@ -131,7 +143,13 @@ export async function createMockBackend() {
   const api = {
     health: () => later({ status: "ok", contractVersion: config.contractVersion, state: round.state }),
     config: () => later(clone(config)),
-    account: () => later({ ...clone(tpl.responses.account), accountId: "acc_mock", balance: credits(balance) }),
+    account: () => later({ ...clone(tpl.responses.account), ...ME, accountId: "acc_mock", balance: credits(balance) }),
+    players: () => later({ roundId: round.roundId, players: [], online: 1 }),
+    setName(name) {
+      ME.name = String(name).trim().slice(0, 16) || ME.name;
+      emitRoster();
+      return later({ ...clone(tpl.responses.account), ...ME, accountId: "acc_mock", balance: credits(balance) });
+    },
     history: (limit = 20) => later({ rounds: clone(history.slice(0, limit)) }),
     currentRound() {
       const body = {
@@ -153,6 +171,7 @@ export async function createMockBackend() {
       balance -= w;
       bet = { betId: `b_${roundNo}`, wager: w, auto: autoCashOut === null ? null : Math.round(autoCashOut * 100), status: "active" };
       emit("balance.updated", { balance: credits(balance), reason: "bet" });
+      setTimeout(emitRoster, 0);
       return later({
         ...clone(tpl.responses.place_bet), betId: bet.betId, roundId, wager: credits(w),
         autoCashOut, status: "active", balance: credits(balance),

@@ -14,11 +14,45 @@ const roundNo = (id) => String(id).replace(/^r_/, "");
 const signed = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + formatCredits(Math.abs(n));
 const shortHash = (h) => (h ? `${h.slice(0, 8)}…${h.slice(-6)}` : "");
 
-export function mountData(store, { openFair }) {
+/** A stable colour per player, from their public id. */
+export function playerColor(playerId) {
+  let h = 0;
+  for (const ch of String(playerId)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return `hsl(${h % 360} 75% 68%)`;
+}
+
+/** One roster row: colour dot, name, wager, result. Shared with the Pilots sheet. */
+export function rosterRow(p, meId) {
+  const li = Object.assign(document.createElement("li"), { className: "roster__row" + (p.playerId === meId ? " is-me" : "") });
+  const dot = Object.assign(document.createElement("span"), { className: "roster__dot" });
+  dot.style.background = playerColor(p.playerId);
+  const name = Object.assign(document.createElement("span"), {
+    className: "roster__name", textContent: p.playerId === meId ? t("players.you", { name: p.name }) : p.name,
+  });
+  const wager = Object.assign(document.createElement("span"), { className: "roster__wager", textContent: formatCredits(p.wager) });
+  const result = Object.assign(document.createElement("span"), { className: "roster__result" });
+  if (p.status === "cashed-out") {
+    result.classList.add("is-pos");
+    result.textContent = `${formatMultiplier(p.multiplier)} ${signed(Number(p.payout) - Number(p.wager))}`;
+  } else if (p.status === "lost") {
+    result.classList.add("is-neg");
+    result.textContent = signed(-Number(p.wager));
+  } else {
+    result.classList.add("is-riding");
+    result.textContent = t("players.riding");
+  }
+  li.append(dot, name, wager, result);
+  return li;
+}
+
+export function mountData(store, { openFair, openPilots }) {
   const balance = $("balance"), net = $("net"), rounds = $("rounds"), best = $("best"), wagered = $("wagered");
   const pills = $("pills"), flights = $("flights"), fairChip = $("fairChip"), fairText = $("fairText");
 
   fairChip.addEventListener("click", () => openFair(null));
+  const crowd = $("crowd"), crowdText = $("crowdText"), roster = $("roster"), rosterCount = $("rosterCount");
+  crowd.addEventListener("click", () => openPilots());
+  let lastRoster = null;
   pills.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-round]");
     if (b) openFair(b.dataset.round);
@@ -28,6 +62,18 @@ export function mountData(store, { openFair }) {
 
   let lastHistory = null;
   store.subscribe((s) => {
+    // Multiplayer: who is in this launch and how many are online
+    setText(crowdText, `${s.players.length}/${Math.max(s.online, 1)}`);
+    crowd.setAttribute("aria-label", t("players.crowdAria", { n: s.players.length, o: Math.max(s.online, 1) }));
+    setText(rosterCount, t("players.count", { n: s.players.length, o: Math.max(s.online, 1) }));
+    if (s.players !== lastRoster || s.lang !== roster.dataset.lang) {
+      lastRoster = s.players;
+      roster.dataset.lang = s.lang;
+      roster.replaceChildren(...(s.players.length
+        ? s.players.map((p) => rosterRow(p, s.me?.playerId))
+        : [Object.assign(document.createElement("li"), { className: "roster__empty", textContent: t("players.empty") })]));
+    }
+
     setText(balance, formatCredits(s.balance));
     const n = s.session.net;
     setText(net, signed(n));

@@ -28,7 +28,10 @@ ErrorCode = Literal[
     "BET_WINDOW_CLOSED", "BET_OUT_OF_RANGE", "INSUFFICIENT_BALANCE", "ALREADY_BET",
     "NO_ACTIVE_BET", "TOO_LATE", "IDEMPOTENCY_KEY_REUSED", "UNAUTHORIZED",
     "INVALID_REQUEST", "ROUND_NOT_IN_FLIGHT", "ROUND_NOT_FOUND", "ROUND_NOT_FINISHED",
+    "REFILL_NOT_NEEDED",
 ]
+PlayerId = Annotated[str, Field(pattern=r"^p_[0-9a-f]{10}$")]
+PilotName = Annotated[str, Field(min_length=2, max_length=16)]
 
 
 class Wire(BaseModel):
@@ -54,9 +57,37 @@ class CashOutRequest(Wire):
 
 class AccountResponse(Wire):
     accountId: str = Field(pattern=r"^acc_[A-Za-z0-9]+$")
+    playerId: PlayerId
+    name: PilotName
     balance: Credits
     currency: Literal["credits"]
     language: str
+
+
+class SetNameRequest(Wire):
+    name: str
+
+
+class RosterEntry(Wire):
+    """One player's bet in the current launch, as every player sees it."""
+
+    playerId: PlayerId
+    name: PilotName
+    wager: Credits
+    status: Literal["active", "cashed-out", "lost"]
+    multiplier: Multiplier | None = None  # only once cashed out
+    payout: Credits | None = None          # only once cashed out
+
+
+class PlayersData(Wire):
+    players: list[RosterEntry]
+    online: int = Field(ge=0, description="Distinct players connected right now")
+
+
+class PlayersResponse(Wire):
+    roundId: RoundId
+    players: list[RosterEntry]
+    online: int = Field(ge=0)
 
 
 class MyBet(Wire):
@@ -258,6 +289,13 @@ class BalanceUpdatedEvent(Wire):
     data: BalanceData
 
 
+class RoundPlayersEvent(Wire):
+    type: Literal["round.players"]
+    seq: int = Field(ge=0)
+    roundId: RoundId
+    data: PlayersData
+
+
 class HistoryUpdatedEvent(Wire):
     type: Literal["history.updated"]
     seq: int = Field(ge=0)
@@ -273,12 +311,14 @@ EVENT_MODELS: dict[str, type[Wire]] = {
     "round.settled": RoundSettledEvent,
     "balance.updated": BalanceUpdatedEvent,
     "history.updated": HistoryUpdatedEvent,
+    "round.players": RoundPlayersEvent,
 }
 
 # Path under contract/schemas/ and contract/examples/ (without extension) -> model.
 CONTRACT_MODELS: dict[str, type[Wire]] = {
     "requests/place_bet": PlaceBetRequest,
     "requests/cash_out": CashOutRequest,
+    "requests/set_name": SetNameRequest,
     "responses/account": AccountResponse,
     "responses/current_round": CurrentRoundResponse,
     "responses/place_bet": BetResponse,
@@ -288,5 +328,6 @@ CONTRACT_MODELS: dict[str, type[Wire]] = {
     "responses/error": ErrorResponse,
     "responses/config": PublicConfigResponse,
     "responses/health": HealthResponse,
+    "responses/players": PlayersResponse,
     **{f"events/{name}": model for name, model in EVENT_MODELS.items()},
 }

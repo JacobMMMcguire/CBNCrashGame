@@ -19,9 +19,12 @@ function uuidv4() {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/** SKELETON ONLY guest identity: a random token kept in this browser. */
-export function guestToken() {
-  const KEY = "ascent-guest-token";
+/**
+ * Guest identity: a random token kept in this browser. `slot` gives a separate
+ * player in the same browser (the page passes ?player=2), for testing multiplayer.
+ */
+export function guestToken(slot = "") {
+  const KEY = "ascent-guest-token" + (slot ? `-${slot}` : "");
   try {
     let token = localStorage.getItem(KEY);
     if (!token) {
@@ -63,6 +66,8 @@ export function createApi({ base, token }) {
     config: () => request("GET", "/config"),
     account: () => request("GET", "/account"),
     refill: () => request("POST", "/account/refill", { body: {} }),
+    setName: (name) => request("POST", "/account/name", { body: { name } }),
+    players: () => request("GET", "/players"),
     currentRound: () => request("GET", "/rounds/current"),
     history: (limit = 20) => request("GET", `/history?limit=${limit}`),
     verify: (roundId) => request("GET", `/rounds/${encodeURIComponent(roundId)}/verify`),

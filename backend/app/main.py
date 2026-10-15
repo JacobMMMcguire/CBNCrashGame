@@ -76,6 +76,8 @@ def create_app(
         clock or SystemClock(),
         broadcaster,
     )
+    engine.online_count = broadcaster.online_count
+    broadcaster.on_presence = engine.publish_roster
     services = Services(config, engine, ledger, InMemoryIdempotencyStore(), broadcaster)
 
     @contextlib.asynccontextmanager

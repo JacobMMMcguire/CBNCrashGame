@@ -19,9 +19,11 @@ from .config import public_config
 from .errors import GameError
 from .idempotency import StoredResponse
 from .money import format_credits, multiplier_from_float, multiplier_to_float, parse_credits
+from .players import clean_name, display_name, player_id
 from .schemas import (
     AccountResponse, BetResponse, CashOutRequest, CashOutResponse, CurrentRoundResponse,
-    HealthResponse, HistoryResponse, PlaceBetRequest, PublicConfigResponse, VerifyResponse, wire,
+    HealthResponse, HistoryResponse, PlaceBetRequest, PlayersResponse, PublicConfigResponse,
+    SetNameRequest, VerifyResponse, wire,
 )
 
 router = APIRouter(prefix="/api/v1")
@@ -82,11 +84,30 @@ async def get_config(request: Request):
     return public_config(services(request).config)
 
 
+def _account_body(acc) -> dict:
+    return {"accountId": acc.account_id, "playerId": player_id(acc.account_id), "name": display_name(acc),
+            "balance": format_credits(acc.balance), "currency": "credits", "language": acc.language}
+
+
 @router.get("/account", response_model=AccountResponse)
 async def get_account(request: Request, account_id: str = Depends(current_account)):
-    acc = services(request).ledger.get_account(account_id)
-    return {"accountId": acc.account_id, "balance": format_credits(acc.balance), "currency": "credits",
-            "language": acc.language}
+    return _account_body(services(request).ledger.get_account(account_id))
+
+
+@router.post("/account/name", response_model=AccountResponse)
+async def set_name(request: Request, body: SetNameRequest, account_id: str = Depends(current_account)):
+    """Choose the pilot name other players see (2-16 characters)."""
+    svc = services(request)
+    acc = svc.ledger.set_name(account_id, clean_name(body.name))
+    svc.engine.publish_roster()
+    return _account_body(acc)
+
+
+@router.get("/players", response_model=PlayersResponse, response_model_exclude_none=True)
+async def get_players(request: Request, account_id: str = Depends(current_account)):
+    """The current launch's roster and how many players are online (for resync)."""
+    eng = services(request).engine
+    return {"roundId": eng.round.round_id, "players": eng.roster(), "online": eng.online_count()}
 
 
 @router.post("/account/refill", response_model=AccountResponse)
@@ -94,9 +115,7 @@ async def refill_account(request: Request, account_id: str = Depends(current_acc
     """Play credits only: refill a broke account to startingBalance (409 REFILL_NOT_NEEDED otherwise)."""
     svc = services(request)
     svc.engine.refill(account_id)
-    acc = svc.ledger.get_account(account_id)
-    return {"accountId": acc.account_id, "balance": format_credits(acc.balance), "currency": "credits",
-            "language": acc.language}
+    return _account_body(svc.ledger.get_account(account_id))
 
 
 @router.get("/rounds/current", response_model=CurrentRoundResponse, response_model_exclude_unset=True)

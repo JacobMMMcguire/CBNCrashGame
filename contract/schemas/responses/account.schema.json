@@ -8,6 +8,17 @@
       "title": "Accountid",
       "type": "string"
     },
+    "playerId": {
+      "pattern": "^p_[0-9a-f]{10}$",
+      "title": "Playerid",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 16,
+      "minLength": 2,
+      "title": "Name",
+      "type": "string"
+    },
     "balance": {
       "examples": [
         "100.00"
@@ -28,6 +39,8 @@
   },
   "required": [
     "accountId",
+    "playerId",
+    "name",
     "balance",
     "currency",
     "language"

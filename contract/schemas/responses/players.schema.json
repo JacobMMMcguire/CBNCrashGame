@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responses/players.schema.json",
+  "$defs": {
+    "RosterEntry": {
+      "additionalProperties": false,
+      "description": "One player's bet in the current launch, as every player sees it.",
+      "properties": {
+        "playerId": {
+          "pattern": "^p_[0-9a-f]{10}$",
+          "title": "Playerid",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 2,
+          "title": "Name",
+          "type": "string"
+        },
+        "wager": {
+          "examples": [
+            "100.00"
+          ],
+          "pattern": "^\\d{1,9}\\.\\d{2}$",
+          "title": "Wager",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "cashed-out",
+            "lost"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "multiplier": {
+          "anyOf": [
+            {
+              "description": "Two decimals, floored",
+              "minimum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Multiplier"
+        },
+        "payout": {
+          "anyOf": [
+            {
+              "examples": [
+                "100.00"
+              ],
+              "pattern": "^\\d{1,9}\\.\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payout"
+        }
+      },
+      "required": [
+        "playerId",
+        "name",
+        "wager",
+        "status"
+      ],
+      "title": "RosterEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "roundId": {
+      "pattern": "^r_\\d+$",
+      "title": "Roundid",
+      "type": "string"
+    },
+    "players": {
+      "items": {
+        "$ref": "#/$defs/RosterEntry"
+      },
+      "title": "Players",
+      "type": "array"
+    },
+    "online": {
+      "minimum": 0,
+      "title": "Online",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "roundId",
+    "players",
+    "online"
+  ],
+  "title": "PlayersResponse",
+  "type": "object"
+}

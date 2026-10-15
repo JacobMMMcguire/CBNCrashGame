@@ -1,0 +1,13 @@
+{
+  "type": "round.players",
+  "seq": 18241,
+  "roundId": "r_48213",
+  "data": {
+    "players": [
+      { "playerId": "p_3f9a1c07b2", "name": "Comet-27", "wager": "250.00", "status": "active" },
+      { "playerId": "p_8be04d11c9", "name": "Sineru", "wager": "100.00", "status": "cashed-out", "multiplier": 2.47, "payout": "247.00" },
+      { "playerId": "p_51d2aa90e3", "name": "Vega-63", "wager": "10.00", "status": "lost" }
+    ],
+    "online": 5
+  }
+}

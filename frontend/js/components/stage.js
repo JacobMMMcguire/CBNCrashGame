@@ -42,7 +42,7 @@ export function mountStage(store, audio, { onSoundChange }) {
   const label = $("readLabel"), mult = $("mult"), note = $("readNote"), status = $("status");
   const readout = mult.parentElement;
   const bar = $("countdown").firstElementChild;
-  const toasts = $("toasts");
+  const toasts = $("toasts"), feed = $("feed");
   const conn = $("conn"), connText = $("connText");
 
   // A flyby takes over the readout label for a few seconds ("10× · Moon flyby").
@@ -64,6 +64,15 @@ export function mountStage(store, audio, { onSoundChange }) {
   });
   new ResizeObserver(([entry]) => scene.resize(entry.contentRect.width, entry.contentRect.height)).observe(stage);
   scene.resize(stage.clientWidth, stage.clientHeight);
+
+  function feedLine(p) {
+    const li = document.createElement("li");
+    const name = Object.assign(document.createElement("b"), { textContent: p.name });
+    li.append(name, " " + t("players.feed", { m: formatMultiplier(p.multiplier), p: formatCredits(Number(p.payout) - Number(p.wager)) }));
+    feed.append(li);
+    while (feed.children.length > 4) feed.firstElementChild.remove();
+    setTimeout(() => li.remove(), 4600);
+  }
 
   function toast(text, kind = "") {
     const el = Object.assign(document.createElement("p"), { className: `toast ${kind ? "toast--" + kind : ""}`, textContent: text });
@@ -99,6 +108,16 @@ export function mountStage(store, audio, { onSoundChange }) {
     }
     if (s.error && s.error !== prev.error) toast(t(`errors.${s.error}`), "error");
     if (s.notice && s.notice !== prev.notice) toast(s.notice.text);
+
+    // Other pilots: a feed line and an astronaut for every cash out in this launch
+    if (s.players !== prev.players && same) {
+      const before = new Map(prev.players.map((p) => [p.playerId, p.status]));
+      for (const p of s.players) {
+        if (p.playerId === s.me?.playerId || p.status !== "cashed-out" || before.get(p.playerId) === "cashed-out") continue;
+        if (s.round.state === "in-flight") scene.eject({ mine: false });
+        feedLine(p);
+      }
+    }
   });
 
   // ---------- Every frame: scene, live multiplier, countdown ----------

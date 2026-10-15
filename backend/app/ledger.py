@@ -23,6 +23,7 @@ class Account:
     account_id: str
     balance: int
     language: str
+    name: str | None = None  # pilot name shown to other players; None means the derived callsign
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,10 @@ class Ledger(ABC):
         original bet with ``applied=False`` and pays nothing (contract §7).
         Raises ``NO_ACTIVE_BET`` if there is no bet or it was lost.
         """
+
+    @abstractmethod
+    def set_name(self, account_id: str, name: str) -> Account:
+        """Set the pilot name other players see."""
 
     @abstractmethod
     def refill(self, account_id: str, balance: int) -> Account:
@@ -152,6 +157,12 @@ class InMemoryLedger(Ledger):
             self._accounts[account_id] = replace(acc, balance=acc.balance + payout)
             self._bets[(account_id, round_id)] = bet
             return bet, True
+
+    def set_name(self, account_id: str, name: str) -> Account:
+        with self._lock:
+            acc = replace(self._accounts[account_id], name=name)
+            self._accounts[account_id] = acc
+            return acc
 
     def refill(self, account_id: str, balance: int) -> Account:
         with self._lock:

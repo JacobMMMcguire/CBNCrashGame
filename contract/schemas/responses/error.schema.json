@@ -18,7 +18,8 @@
             "INVALID_REQUEST",
             "ROUND_NOT_IN_FLIGHT",
             "ROUND_NOT_FOUND",
-            "ROUND_NOT_FINISHED"
+            "ROUND_NOT_FINISHED",
+            "REFILL_NOT_NEEDED"
           ],
           "title": "Code",
           "type": "string"

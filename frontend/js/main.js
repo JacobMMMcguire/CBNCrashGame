@@ -4,6 +4,7 @@
 // Optional query parameters:
 //   ?mock=1                      run a fake round loop in the browser (no server)
 //   ?api=http://127.0.0.1:8001   use a server on another origin (must be in corsAllowOrigins)
+//   ?player=2                    play as a second pilot in this browser (testing multiplayer)
 
 import { ApiError, createApi, guestToken } from "./api.js";
 import { createRealtime, websocketUrl } from "./realtime.js";
@@ -31,7 +32,8 @@ async function createBackend() {
     return createMockBackend();
   }
   const base = (params.get("api") || "").replace(/\/$/, "") + "/api/v1";
-  const token = guestToken();
+  const slot = (params.get("player") || "").replace(/[^a-z0-9]/gi, "").slice(0, 8);
+  const token = guestToken(slot);
   return {
     api: createApi({ base, token }),
     createRealtime: (handlers) => createRealtime({ ...handlers, url: websocketUrl(base, token) }),
@@ -77,9 +79,14 @@ async function boot() {
   function resync() {
     syncing ??= (async () => {
       try {
-        const [account, cur, hist] = await Promise.all([api.account(), api.currentRound(), api.history(30)]);
+        const [account, cur, hist, crew] = await Promise.all([
+          api.account(), api.currentRound(), api.history(30), api.players(),
+        ]);
         store.set({
           balance: account.balance,
+          me: { playerId: account.playerId, name: account.name },
+          players: crew.roundId === cur.roundId ? crew.players : [],
+          online: crew.online,
           round: {
             roundId: cur.roundId, state: cur.state, commitment: cur.commitment, closesAt: cur.closesAt,
             launchedAt: cur.launchedAt, crash: cur.crash ?? null, serverSeed: cur.serverSeed ?? null,
@@ -151,6 +158,9 @@ async function boot() {
       case "balance.updated":
         store.set({ balance: d.balance });
         break;
+      case "round.players":
+        if (sameRound) store.set({ players: d.players, online: d.online });
+        break;
       case "history.updated": {
         const { roundId, crash } = d.round;
         const bet = s.round.roundId === roundId ? s.myBet : null;
@@ -212,6 +222,10 @@ async function boot() {
       } finally {
         store.set({ pending: null });
       }
+    },
+    async setName(name) {
+      const r = await api.setName(name);  // errors go back to the form
+      store.set({ me: { playerId: r.playerId, name: r.name } });
     },
     setQueued(queued) {
       store.set({ queued, error: null });
@@ -284,7 +298,7 @@ async function boot() {
 
   const menu = mountMenu(store, actions);
   mountStage(store, audio, { onSoundChange: (on) => pref.set("ascent-sound", on ? "1" : "0") });
-  mountData(store, { openFair: (roundId) => menu.openFair(roundId) });
+  mountData(store, { openFair: (roundId) => menu.openFair(roundId), openPilots: () => menu.openPilots() });
   mountControls(store, actions);
 
   backend.createRealtime({ onEvent, onStatus: (connection) => store.set({ connection }), onResync: resync }).start();

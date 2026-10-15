@@ -130,6 +130,7 @@ None of these are in GAME_CONTRACT.md yet. The skeleton implements them, and the
 12. **`POST /api/v1/account/refill`** (play credits only) sets a broke account back to `startingBalance`. It is allowed only when the balance is below `minBet` and no bet is riding; otherwise `409 REFILL_NOT_NEEDED`. It returns the account body and sends `balance.updated` with reason `"refill"`.
 13. **`POST /api/v1/dev/skip`** (testing only) exists only when the server starts with `ASCENT_DEV_CHEATS=1`. In flight it moves the launch time back so the multiplier rises by 5.00×; the crash point and seed are unchanged.
 14. **A failed round refunds** every active bet as a cash out at 1.00× (`engine._abandon_round`), so players get their wager back through the usual `round.cashout` and `balance.updated` events.
+15. **Multiplayer presence.** `GET /api/v1/account` also returns `playerId` (a public hash; account ids stay private) and `name` (the chosen pilot name or a derived callsign). `POST /api/v1/account/name` `{ "name" }` sets it (2-16 characters, else `422 INVALID_REQUEST`). A new broadcast event `round.players` carries `{ players: [{ playerId, name, wager, status, multiplier?, payout? }], online }` whenever a bet, cash out, crash, rename, new round or connection changes it; auto-eject targets are never included. `GET /api/v1/players` returns the same roster for resync.
 
 ## Open issues
 

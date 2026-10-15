@@ -34,8 +34,10 @@ class RecordingSink:
     def publish(self, event: dict, account_id: str | None = None) -> None:
         self.events.append((json.loads(json.dumps(event)), account_id))
 
-    def types(self) -> list[str]:
-        return [e["type"] for e, _ in self.events]
+    def types(self, presence: bool = False) -> list[str]:
+        """Event types in order. round.players (the multiplayer roster) is a separate
+        stream interleaved with the lifecycle, so it is left out unless asked for."""
+        return [e["type"] for e, _ in self.events if presence or e["type"] != "round.players"]
 
 
 @pytest.fixture
