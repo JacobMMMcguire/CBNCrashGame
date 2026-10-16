@@ -182,11 +182,14 @@ test("single-player /app/ still plays a round", async ({ browser }) => {
     const { page, errors } = await newPage(browser, "1440x900", lang);
     await page.goto(`${MAIN}/app/`);
     await expect(page.locator("#conn")).toHaveAttribute("data-status", "open");
+    // Main's single-player UI: one action button (bet while boarding, "bet next launch" in flight).
+    await expect(page.locator("#balance")).not.toHaveText("–");
     const before = await page.locator("#balance").textContent();
-    await expect(page.locator("#betBtn")).toBeEnabled({ timeout: 20_000 });
     await page.locator("#wager").fill("10");
-    await page.locator("#betBtn").click();
-    await expect(page.locator("#balance")).not.toHaveText(before!);
+    await expect(page.locator("#actionBtn")).toBeEnabled({ timeout: 20_000 });
+    await expect(page.locator("#actionBtn")).not.toHaveAttribute("data-mode", "eject");
+    await page.locator("#actionBtn").click();
+    await expect(page.locator("#balance")).not.toHaveText(before!, { timeout: 30_000 }); // debited by the server
     await shot(page, `${lang}-1440x900-singleplayer`);
     expect(errors).toEqual([]);
     await page.context().close();
