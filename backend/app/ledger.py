@@ -7,10 +7,11 @@ hundredths.
 
 from __future__ import annotations
 
+import itertools
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import Iterator, Literal
 
 from .errors import GameError
 from .money import format_credits, payout_units
@@ -100,12 +101,14 @@ class InMemoryLedger(Ledger):
     TODO(ledger owner): replace with the real ledger described in ``Ledger``.
     """
 
-    def __init__(self, starting_balance: int) -> None:
+    def __init__(self, starting_balance: int, bet_numbers: Iterator[int] | None = None) -> None:
         self._starting_balance = starting_balance
         self._lock = threading.Lock()
         self._accounts: dict[str, Account] = {}
         self._bets: dict[tuple[str, str], Bet] = {}  # (account_id, round_id) -> bet
-        self._next_bet = 1
+        # Rooms share one counter that starts after the highest stored bet id, so
+        # b_N stays unique across rooms and restarts.
+        self._bet_numbers = bet_numbers if bet_numbers is not None else itertools.count(1)
 
     def ensure_account(self, account_id: str, language: str) -> Account:
         with self._lock:
@@ -129,8 +132,7 @@ class InMemoryLedger(Ledger):
                     "INSUFFICIENT_BALANCE",
                     f"Wager {format_credits(wager)} is more than the balance {format_credits(acc.balance)}.",
                 )
-            bet = Bet(f"b_{self._next_bet}", account_id, round_id, wager, auto_cash_out)
-            self._next_bet += 1
+            bet = Bet(f"b_{next(self._bet_numbers)}", account_id, round_id, wager, auto_cash_out)
             self._accounts[account_id] = replace(acc, balance=acc.balance - wager)
             self._bets[(account_id, round_id)] = bet
             return bet

@@ -98,6 +98,7 @@ class RoundEngine:
         clock: Clock,
         sink: EventSink | None = None,
         round_prefix: str = "",
+        first_round_number: int = 1,
     ) -> None:
         self.config = config
         self.ledger = ledger
@@ -107,7 +108,8 @@ class RoundEngine:
         self.sink: EventSink = sink or NullSink()
         # Rooms pass "K7QX-" so round ids are unique across rooms (K7QX-r_1).
         self.round_prefix = round_prefix
-        self._round_counter = 0
+        # Start after the highest stored round number once rounds are persisted.
+        self._round_counter = first_round_number - 1
         self._finished: OrderedDict[str, Round] = OrderedDict()
         self.round = self._new_round()
 

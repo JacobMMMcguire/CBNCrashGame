@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from decimal import Decimal
 
@@ -14,6 +15,12 @@ from app.fairness import PlaceholderFairness
 from app.ledger import InMemoryLedger
 from app.main import create_app
 from app.rng import FixedSequenceCrashPointProvider
+
+# Tests never touch the developer's SQLite file or .env values: the .env loader
+# does not override variables that are already set.
+os.environ["STORAGE_BACKEND"] = "memory"
+os.environ["PUBLIC_BASE_URL"] = "http://testserver"
+os.environ["SEAT_HOLD_SECONDS"] = "120"
 
 TOKEN = "test-token-0123456789"
 OTHER_TOKEN = "other-token-0123456789"
