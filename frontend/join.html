@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en-CA" data-theme="mission">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090F1F">
+<title>Ascent · Join</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/css/tokens.css">
+<link rel="stylesheet" href="/app/css/room.css">
+<script type="module" src="/app/js/room/join.js"></script>
+</head>
+<body class="room room--phone">
+<div class="playmoney" data-i18n="room.playMoney">PLAY MONEY · credits have no cash value</div>
+<header class="room-top">
+  <span class="brand-name">Ascent</span>
+  <span class="label" id="roomLabel"></span>
+  <span class="conn" id="conn" data-status="connecting" role="status" aria-live="polite"></span>
+</header>
+
+<main class="phone">
+  <!-- No code in the link: type it -->
+  <form class="card" id="codeForm" hidden>
+    <h1 data-i18n="room.join.codeTitle">Join a game</h1>
+    <label class="field">
+      <span class="label" data-i18n="room.join.codeLabel">Room code</span>
+      <input id="codeInput" name="code" inputmode="text" autocomplete="off" autocapitalize="characters"
+             spellcheck="false" maxlength="4" required pattern="[A-Za-z0-9]{4}" class="input input--code">
+    </label>
+    <button class="btn btn--primary btn--xl" type="submit" data-i18n="room.join.next">Next</button>
+  </form>
+
+  <!-- Pick a name -->
+  <form class="card" id="nameForm" hidden>
+    <h1 data-i18n="room.join.nameTitle">What should we call you?</h1>
+    <p class="hint" id="startingNote"></p>
+    <label class="field">
+      <span class="label" data-i18n="room.join.nameLabel">Your name</span>
+      <input id="nameInput" name="name" autocomplete="nickname" maxlength="16" required class="input">
+    </label>
+    <button class="btn btn--primary btn--xl" type="submit" id="joinBtn" data-i18n="room.join.joinButton">Join the game</button>
+    <p class="error" id="joinError" role="alert" hidden></p>
+  </form>
+
+  <!-- Message only (room not found, removed, ...) -->
+  <section class="card" id="notice" hidden>
+    <p id="noticeText" role="alert"></p>
+    <a class="btn btn--xl" href="/join" data-i18n="room.join.otherRoom">Join another room</a>
+  </section>
+
+  <!-- Playing -->
+  <section id="play" hidden>
+    <div class="me">
+      <span class="me__name" id="meName"></span>
+      <span class="me__balance"><span id="meBalance">–</span> <span class="me__unit" data-i18n="room.credits">play credits</span></span>
+    </div>
+
+    <div class="panel stage stage--phone" id="stage" data-state="idle">
+      <p class="stage__mult" data-multiplier>1.00×</p>
+      <p class="stage__phase" data-phase role="status" aria-live="polite"></p>
+    </div>
+
+    <p class="result" id="result" role="status" aria-live="polite"></p>
+
+    <div class="bet" id="betPanel">
+      <label class="field">
+        <span class="label" data-i18n="room.join.wager">Wager (play credits)</span>
+        <input id="wagerInput" class="input input--wager" inputmode="decimal" autocomplete="off" value="10">
+      </label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <button class="btn btn--primary btn--action" id="actionBtn" type="button" disabled></button>
+    <p class="error" id="playError" role="alert" hidden></p>
+  </section>
+</main>
+</body>
+</html>
