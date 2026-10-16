@@ -52,6 +52,10 @@ CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 CODE_LENGTH = 4
 NAME_MAX = 16
 
+# Every room socket hears from the server at least this often, even in an idle lobby,
+# so a page can tell a silently dropped connection from a quiet one (see socket.js).
+PING_EVERY_MS = 10_000
+
 CLOSE_UNAUTHORIZED = 4401
 CLOSE_KICKED = 4403
 CLOSE_ROOM_NOT_FOUND = 4404
@@ -296,6 +300,9 @@ class Room:
             ],
         }
 
+    def ping(self) -> None:
+        self.broadcaster.publish({"type": "ping", "data": {"serverTime": iso_ms(self.clock.now_ms())}})
+
     def broadcast_lobby(self) -> None:
         self.broadcaster.publish({"type": "lobby.updated", "data": self.lobby_data()})
 
@@ -368,10 +375,21 @@ class RoomRegistry:
         for room in list(self.rooms.values()):
             room.sweep()
 
+    def ping(self) -> None:
+        for room in list(self.rooms.values()):
+            room.ping()
+
     async def run_sweeper(self, every_ms: int = 5000) -> None:
+        """Housekeeping loop: release expired seats every ``every_ms`` and ping every room
+        every ``PING_EVERY_MS``."""
+        since_ping = 0
         while True:
             await self.clock.sleep_ms(every_ms)
             self.sweep()
+            since_ping += every_ms
+            if since_ping >= PING_EVERY_MS:
+                since_ping = 0
+                self.ping()
 
     async def shutdown(self) -> None:
         for room in list(self.rooms.values()):

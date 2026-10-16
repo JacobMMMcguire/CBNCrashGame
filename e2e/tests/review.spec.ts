@@ -149,6 +149,33 @@ test("language switch on room pages: FR keeps the seat; ?lang= links work", asyn
   await host.page.context().close();
 });
 
+test("a silently dropped connection is noticed within 25 s and the phone reconnects", async ({ browser }) => {
+  const room = await createRoom(LAN);
+  const ana = (await joinRoom(LAN, room.roomCode, "Ana")).body;
+  const { page } = await newPage(browser, "390x844", "en", { [`ascent-session:${room.roomCode}`]: ana.sessionToken });
+  await page.clock.install();
+  // Sit between the page and the server; "muted" swallows everything the server sends,
+  // like a Wi-Fi link that died without closing the socket.
+  let muted = false;
+  await page.routeWebSocket(/\/api\/v1\/rooms\/.*\/ws$/, (ws) => {
+    const server = ws.connectToServer();
+    ws.onMessage((m) => server.send(m));
+    server.onMessage((m) => { if (!muted) ws.send(m); });
+  });
+  await page.goto(`${LAN}/join/${room.roomCode}`);
+  await expect(page.locator("#conn")).toHaveAttribute("data-status", "open");
+  muted = true;
+  await page.clock.fastForward(20_000);
+  await expect(page.locator("#conn")).toHaveAttribute("data-status", "open"); // under 25 s: still trusted
+  await page.clock.fastForward(10_000);
+  await expect(page.locator("#conn")).toHaveAttribute("data-status", "reconnecting");
+  muted = false;
+  await page.clock.fastForward(3_000);
+  await expect(page.locator("#conn")).toHaveAttribute("data-status", "open");
+  await expect(page.locator("#meName")).toHaveText("Ana");
+  await page.context().close();
+});
+
 test("single-player /app/ still plays a round", async ({ browser }) => {
   for (const lang of ["en", "fr"] as const) {
     const { page, errors } = await newPage(browser, "1440x900", lang);

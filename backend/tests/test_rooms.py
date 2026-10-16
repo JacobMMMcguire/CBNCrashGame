@@ -312,3 +312,51 @@ def test_room_round_loop_runs_after_host_start():
             crashed = recv(host, "round.crashed")
             assert crashed["roundId"] == rid and crashed["data"]["crash"] == 1.5
             recv(host, "round.settled")
+
+
+# ---------- Keep-alive ----------
+
+def test_rooms_ping_every_socket_so_silent_drops_can_be_detected(env):
+    client, clock, _ = env
+    room_info = host_room(client)
+    code = room_info["roomCode"]
+    ana = join_ok(client, code, "Ana")
+    registry = client.app.state.services.rooms
+    with socket(client, code) as host, socket(client, code) as phone:
+        hello(host, "host", room_info["hostToken"])
+        hello(phone, "player", ana["sessionToken"])
+        now = clock.now_ms()
+        client.portal.call(registry.ping)
+        for ws in (host, phone):
+            msg = recv(ws, "ping")
+            assert msg["data"]["serverTime"] and isinstance(msg["seq"], int)
+    assert clock.now_ms() == now
+
+
+def test_housekeeping_loop_pings_every_ten_seconds():
+    import asyncio
+
+    from app.clock import ManualClock
+    from app.fairness import PlaceholderFairness
+    from app.rooms import PING_EVERY_MS, RoomRegistry
+    from app.settings import Settings
+    from app.storage import InMemoryStorage
+
+    clock = ManualClock()
+    registry = RoomRegistry(config=make_config(), settings=Settings(storage_backend="memory"),
+                            storage=InMemoryStorage(), clock=clock,
+                            provider_factory=lambda: FixedSequenceCrashPointProvider((247,)),
+                            fairness=PlaceholderFairness(), autorun=False)
+    pings = []
+    registry.ping = lambda: pings.append(clock.now_ms())
+
+    async def run_for(ms):
+        task = asyncio.create_task(registry.run_sweeper())
+        start = clock.now_ms()
+        while clock.now_ms() - start < ms:
+            await asyncio.sleep(0)
+        task.cancel()
+
+    asyncio.run(run_for(35_000))
+    assert PING_EVERY_MS == 10_000
+    assert [b - a for a, b in zip(pings, pings[1:])] == [10_000] * (len(pings) - 1) and len(pings) >= 3

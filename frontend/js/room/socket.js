@@ -8,6 +8,9 @@
 
 const CLOSE = { unauthorized: 4401, kicked: 4403, notFound: 4404 };
 const REPLY_TIMEOUT_MS = 8000;
+// The server pings every room socket every 10 s. Hearing nothing for this long means the
+// connection died without closing (e.g. Wi-Fi dropped silently): close it and reconnect.
+const SILENCE_MS = 25000;
 
 export function roomSocketUrl(code) {
   const u = new URL(`/api/v1/rooms/${encodeURIComponent(code)}/ws`, location.href);
@@ -22,6 +25,7 @@ export function createRoomSocket({ code, role, token, onMessage, onStatus, onRej
   let timer = 0;
   let stopped = false;
   let nextRef = 1;
+  let lastHeard = Date.now();
   const pending = new Map(); // ref -> {resolve, reject, timer}
 
   function failPending(reason) {
@@ -34,14 +38,17 @@ export function createRoomSocket({ code, role, token, onMessage, onStatus, onRej
     ws = new WebSocket(roomSocketUrl(code));
     ws.onopen = () => {
       lastSeq = null;
+      lastHeard = Date.now();
       ws.send(JSON.stringify({ type: "hello", role, token: token() }));
     };
     ws.onmessage = (e) => {
+      lastHeard = Date.now();
       let msg;
       try { msg = JSON.parse(e.data); } catch { return; }
       if (lastSeq !== null && msg.seq !== lastSeq + 1) { ws.close(); return; } // resync via a new welcome
       lastSeq = msg.seq;
       if (msg.type === "welcome") { attempt = 0; onStatus("open"); }
+      if (msg.type === "ping") return; // keep-alive only
       if (msg.type === "reply") {
         const p = pending.get(msg.data.ref);
         if (p) { clearTimeout(p.timer); pending.delete(msg.data.ref); p.resolve(msg.data); }
@@ -70,6 +77,10 @@ export function createRoomSocket({ code, role, token, onMessage, onStatus, onRej
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && !stopped && !ws) { attempt = 0; connect(); }
   });
+
+  setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN && Date.now() - lastHeard > SILENCE_MS) ws.close();
+  }, 5000);
 
   connect();
 
