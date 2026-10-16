@@ -164,7 +164,7 @@ test("host, two phones: join, play, leaderboard, reconnect, kick, invented token
     }, [code]);
     await mallory.goto(joinLink);
     await expect(mallory.locator("#nameForm")).toBeVisible();
-    await expect(mallory.locator("#joinError")).toHaveText("Your seat was released. Join again with a name.");
+    await expect(mallory.locator("#joinError")).toHaveText("This device is not in the room right now. Enter a name to join.");
     await expect(mallory.locator("#play")).toBeHidden();
     expect(await mallory.evaluate((c) => localStorage.getItem(`ascent-session:${c}`), code)).toBeNull();
     await expect(host.locator("#playerCount")).toHaveText("(1)");

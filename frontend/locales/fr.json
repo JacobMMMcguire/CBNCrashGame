@@ -148,7 +148,7 @@
   "room.join.startingNote": "Vous commencez avec {b} crédits fictifs. Argent fictif seulement : rien à acheter, rien à gagner.",
   "room.join.wager": "Mise (crédits fictifs)",
   "room.join.kicked": "L'hôte vous a retiré de cette salle.",
-  "room.join.seatReleased": "Votre place a été libérée. Rejoignez de nouveau avec un nom.",
+  "room.join.sessionInvalid": "Cet appareil n'est pas dans la salle pour le moment. Entrez un nom pour la rejoindre.",
   "room.join.cashedOut": "Encaissé à {m} : +{p} crédits fictifs",
   "room.join.lost": "Écrasé à {c}. Vous avez perdu {w} crédits fictifs.",
   "room.join.placeBet": "Miser · {w}",

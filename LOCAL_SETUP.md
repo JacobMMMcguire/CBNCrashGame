@@ -130,7 +130,7 @@ Test-NetConnection -ComputerName 192.168.1.23 -Port 8001
 | Laptop test fails | Check `ASCENT_HOST=0.0.0.0` in `.env` and restart. Check the firewall section above. |
 | Laptop test works but the phone cannot load the health page | The Wi-Fi blocks device-to-device traffic. See section 5. |
 | It worked yesterday and not today | The laptop's IP changed. Find it again and update `PUBLIC_BASE_URL`. |
-| Phone says "Your seat was released" | It was away longer than `SEAT_HOLD_SECONDS`. Join again with a name. |
+| Phone says "This device is not in the room right now" | Its session is no longer valid: it was away longer than `SEAT_HOLD_SECONDS`, or the host removed it and the page was reopened. (After a server restart the phone says the room no longer exists instead.) Enter a name to join again. |
 
 ## 5. When the Wi-Fi blocks phones from reaching the laptop
 

@@ -125,7 +125,7 @@ function connect() {
       store.remove(tokenKey);
       if (reason === "kicked") notice(t("room.join.kicked"));
       else if (reason === "notFound") notice(t("room.error.ROOM_NOT_FOUND"));
-      else showNameForm(t("room.join.seatReleased"));
+      else showNameForm(t("room.join.sessionInvalid")) // invented, expired or kicked-then-reopened: same neutral message;
     },
   });
 }

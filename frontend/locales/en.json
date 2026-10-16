@@ -148,7 +148,7 @@
   "room.join.startingNote": "You start with {b} play credits. Play money only: nothing to buy, nothing to win.",
   "room.join.wager": "Wager (play credits)",
   "room.join.kicked": "The host removed you from this room.",
-  "room.join.seatReleased": "Your seat was released. Join again with a name.",
+  "room.join.sessionInvalid": "This device is not in the room right now. Enter a name to join.",
   "room.join.cashedOut": "Cashed out at {m}: +{p} play credits",
   "room.join.lost": "Crashed at {c}. You lost {w} play credits.",
   "room.join.placeBet": "Place bet · {w}",
