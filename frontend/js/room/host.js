@@ -11,10 +11,11 @@ import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
 import { renderLeaderboard } from "./leaderboard.js";
 import { qrSvg } from "./qr.js";
+import { mountRocket } from "./rocket.js";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
-const view = { code: null, room: null, lobby: { players: [] }, round: createRound(), socket: null };
+const view = { code: null, room: null, lobby: { players: [] }, round: createRound(), socket: null, rocket: null };
 
 function showError(el, text) {
   el.textContent = text || "";
@@ -52,6 +53,7 @@ function connect(code) {
   view.code = code;
   $("intro").hidden = true;
   $("hostGrid").hidden = false;
+  view.rocket ??= mountRocket($("stage")); // after unhiding, so the scene gets its real size
   view.socket = createRoomSocket({
     code, role: "host",
     token: () => store.get(`ascent-host:${code}`),
@@ -69,6 +71,7 @@ function connect(code) {
 }
 
 function onMessage(msg) {
+  view.rocket?.handle(msg); // the launch scene follows the room's own round
   if (msg.type === "welcome") {
     view.room = msg.data.room;
     view.lobby = msg.data.lobby;

@@ -694,7 +694,14 @@ kbd {
   .brand svg, .brand__name { display: none; }
   .stage__top { padding: 8px 8px 0 10px; }
   .icon-btn { width: 40px; height: 40px; }
-  .readout { top: calc(var(--hud-top, 120px) + 50px); }
+  /* The readout starts level with the icon row (label between the badge and the icons),
+     so the cruising rocket's nose stays clear of the digits; a firmer shadow keeps them
+     crisp where they cross the art. */
+  .readout { top: calc(var(--hud-top, 120px) + 14px); }
+  .readout__mult {
+    font-size: clamp(2.6rem, 14cqmin, 6rem);
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.55), 0 4px 22px rgb(0 0 0 / 0.65);
+  }
 
   /* Controls: "Wager ........ Auto eject (switch)", then the inputs */
   .controls { padding: 12px 14px; }
@@ -756,7 +763,7 @@ kbd {
   .data { padding: 8px 12px 9px; }
   .data__grid.phone-only { gap: 4px 14px; }
   .data__grid .stat__value { font-size: 17px; }
-  .readout { top: calc(var(--hud-top, 110px) + 46px); }
+  .readout { top: calc(var(--hud-top, 110px) + 12px); }
   .controls { padding: 10px 12px; }
   #betForm { gap: 8px; }
   .field--wager > .stepper, .field--auto > .input { height: 42px; }
