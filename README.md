@@ -95,7 +95,7 @@ Ascent uses play credits only. It has no deposits or payments. It includes respo
 | Frontend | Plain HTML, CSS and JavaScript ES modules; the launch is drawn on a 2D canvas; sound through Web Audio |
 | Storage | PostgreSQL (Supabase) through psycopg when `DATABASE_URL` is set; in memory otherwise. Multiplayer rooms: SQLite by default (`STORAGE_BACKEND`) |
 | Hosting | Render web service (`render.yaml`) |
-| Tests | pytest + httpx (FastAPI TestClient), TBD_PYTEST tests, plus 10 PostgreSQL tests against a throwaway database; Playwright browser tests for multiplayer rooms in `e2e/` (TBD_E2E tests) |
+| Tests | pytest + httpx (FastAPI TestClient), 114 tests, plus 10 PostgreSQL tests against a throwaway database; Playwright browser tests for multiplayer rooms in `e2e/` (16 tests) |
 
 ## Project structure
 
