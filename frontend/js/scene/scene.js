@@ -70,6 +70,11 @@ const climbAt = (t) => {
 
 export function createScene(canvas, { reducedMotion = false, onMilestone = () => {} } = {}) {
   const ctx = canvas.getContext("2d");
+  // Name tags: real text elements over the canvas (textContent only, never HTML).
+  const tagLayer = document.createElement("div");
+  tagLayer.className = "astro-tags";
+  tagLayer.setAttribute("aria-hidden", "true");
+  canvas.after(tagLayer);
   let W = 1, H = 1, dpr = 1;
   let RH = 100, padX = 0, groundY = 0, padY = 0, cruiseY = 0, hillScale = 100;
   let nebula = null;
@@ -151,6 +156,7 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     mode = "pad";
     cam = climb = speed = power = flightTime = intensity = 0;
     rocketAlive = true;
+    for (const c of astronauts) c.tag?.remove();
     puffs = []; sparks = []; bodies = []; streaks = []; astronauts = []; embers = [];
     ring = null; fireball = null; flash = 0; shake = 0; lastTrail = 0;
     fade = 1;
@@ -209,13 +215,45 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
   }
 
   /** An astronaut leaves the rocket. Every astronaut is the same size; other players' are a little fainter than yours. */
-  function eject({ mine = true } = {}) {
+  function eject({ mine = true, name = "" } = {}) {
     if (mode !== "flight" || !rocketAlive) return;
     if (!mine && astronauts.length > 8) return;
     // The astronaut kicks clear of the cockpit, then tumbles away as the rocket climbs on.
     const side = Math.random() < 0.5 ? -1 : 1;
     astronauts.push({ x: padX, y: rocketScreenY() - RH * 0.7, vx: side * rand(0.4, 0.55) * Math.min(W, 700), vy: -H * 0.2,
-      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), alpha: mine ? 1 : 0.75 });
+      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), alpha: mine ? 1 : 0.75, mine,
+      tag: makeTag(name, mine) });
+  }
+
+  function makeTag(name, mine) {
+    if (!name) return null;
+    const tag = document.createElement("span");
+    tag.className = mine ? "astro-tag is-me" : "astro-tag";
+    tag.textContent = name; // user-provided: plain text only
+    tagLayer.append(tag);
+    return tag;
+  }
+
+  /** Put each tag above its astronaut's head, inside the stage, without tags covering each other. */
+  function placeTags() {
+    const size = RH * ASTRONAUT_SIZE;
+    const placed = [];
+    const ordered = astronauts.filter((c) => c.tag).sort((a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0));
+    for (const c of ordered) {
+      const tag = c.tag;
+      const w = tag.offsetWidth, h = tag.offsetHeight;
+      const x = Math.min(Math.max(c.x - w / 2, 4), W - w - 4);
+      let y = c.y - size * 0.62 - h;
+      // Crowded: step the tag up until it clears the tags already placed (a few steps at most).
+      for (let i = 0; i < 4 && placed.some((p) => x < p.x + p.w + 2 && p.x < x + w + 2 && y < p.y + p.h + 2 && p.y < y + h + 2); i++) {
+        y -= h + 3;
+      }
+      y = Math.min(Math.max(y, 4), H - h - 4);
+      placed.push({ x, y, w, h });
+      tag.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      tag.dataset.size = size.toFixed(2); // rendered astronaut height, for tests
+      tag.dataset.ax = c.x.toFixed(1);    // astronaut centre, stage coordinates
+    }
   }
 
   // ---------- Per-frame update ----------
@@ -301,7 +339,11 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
       c.y += c.vy * dt;
       c.rot += c.spin * dt;
     }
-    astronauts = astronauts.filter((c) => c.age < 7 && c.y < H + RH);
+    astronauts = astronauts.filter((c) => {
+      const keep = c.age < 7 && c.y < H + RH;
+      if (!keep) c.tag?.remove();
+      return keep;
+    });
 
     if (ring) { ring.r += (ring.max - ring.r) * Math.min(1, dt * 5); ring.a -= dt * 1.8; if (ring.a <= 0) ring = null; }
     if (fireball) { fireball.age += dt; fireball.y += speed * 0.12 * dt; if (fireball.age > 0.9) fireball = null; }
@@ -422,6 +464,7 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
       drawAstronaut(ctx, c.x, c.y, RH * ASTRONAUT_SIZE, reducedMotion ? c.phase : c.age + c.phase, reducedMotion ? 0 : c.rot);
       ctx.globalAlpha = 1;
     }
+    placeTags();
     drawFireball();
     drawSparks();
 
