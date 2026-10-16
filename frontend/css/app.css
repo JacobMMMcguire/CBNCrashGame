@@ -524,9 +524,15 @@ kbd {
   .data__stats.wide-only { display: grid !important; }
 
   .data {
-    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto;
+    /* "This launch" (row 5) never shrinks below its rows; "My flights" (row 6) gives up
+       space first and clips inside its own box. If a short window still cannot fit
+       everything, the panel scrolls instead of drawing sections on top of each other. */
+    grid-template-rows: auto auto auto auto minmax(min-content, 1fr) minmax(0, auto) auto;
     align-content: start; gap: 14px; padding: var(--pad);
+    overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
   }
+  .data__roster { grid-template-rows: auto auto; }
+  .data__roster .roster { max-height: 124px; overflow-y: auto; } /* about four pilots, then it scrolls */
   .data__head { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
   .stat--balance .stat__value { font-size: 28px; }
   .data__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -568,6 +574,11 @@ kbd {
 @media (orientation: landscape) and (max-height: 760px) {
   .data__flights { display: none !important; }
   .kbd-hint { display: none !important; }
+}
+/* Side layout on short screens: with "My flights" hidden, the fair chip moves up into
+   row 6 and must keep its height. */
+@media (orientation: landscape) and (min-width: 600px) and (max-height: 760px) {
+  .data { grid-template-rows: auto auto auto auto minmax(min-content, 1fr) auto auto; }
 }
 @media (orientation: landscape) and (max-height: 600px) {
   .data__stats, .fair-chip, .chips, .data__recent .label, .data__pos .stat__sub { display: none !important; }
