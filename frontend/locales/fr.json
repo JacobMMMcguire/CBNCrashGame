@@ -110,6 +110,7 @@
 
   "room.playMoney": "Argent fictif · les crédits n'ont aucune valeur monétaire",
   "room.credits": "crédits fictifs",
+  "room.lang": "Langue",
   "room.host.title": "Écran de l'hôte",
   "room.host.introTitle": "Organisez un lancement multijoueur",
   "room.host.introBody": "Placez cet écran à la vue de tous. Les joueurs rejoignent depuis leur téléphone. Argent fictif seulement.",

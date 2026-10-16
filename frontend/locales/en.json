@@ -110,6 +110,7 @@
 
   "room.playMoney": "Play money · credits have no cash value",
   "room.credits": "play credits",
+  "room.lang": "Language",
   "room.host.title": "Host screen",
   "room.host.introTitle": "Host a multiplayer launch",
   "room.host.introBody": "Put this screen where everyone can see it. Players join from their phones. Play money only.",

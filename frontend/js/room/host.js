@@ -5,7 +5,8 @@
 // Every control (start, lock, kick) is a WebSocket action that the server
 // checks against that token.
 
-import { applyI18n, setLanguage, t } from "../i18n.js";
+import { t } from "../i18n.js";
+import { initLanguage } from "./lang.js";
 import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
 import { renderLeaderboard } from "./leaderboard.js";
@@ -153,9 +154,7 @@ function kickPlayer(p) {
 }
 
 async function main() {
-  const lang = store.get("ascent-lang") === "fr" ? "fr" : "en";
-  await setLanguage(lang);
-  applyI18n();
+  await initLanguage();
   setConn("connecting");
   $("hostBtn").addEventListener("click", hostGame);
   $("startBtn").addEventListener("click", () => hostAction("start"));

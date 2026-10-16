@@ -7,7 +7,8 @@
 // same seat with the same balance. The phone only sends actions; every
 // amount, multiplier and result shown here comes from the server.
 
-import { applyI18n, formatCredits, formatMultiplier, formatNumber, parseCreditsInput, setLanguage, t } from "../i18n.js";
+import { formatCredits, formatMultiplier, formatNumber, parseCreditsInput, t } from "../i18n.js";
+import { initLanguage } from "./lang.js";
 import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
 import { renderLeaderboard } from "./leaderboard.js";
@@ -256,8 +257,7 @@ async function onAction() {
 }
 
 async function main() {
-  await setLanguage(store.get("ascent-lang") === "fr" ? "fr" : "en");
-  applyI18n();
+  await initLanguage();
   setConn("connecting");
   $("codeForm").addEventListener("submit", (e) => {
     e.preventDefault();

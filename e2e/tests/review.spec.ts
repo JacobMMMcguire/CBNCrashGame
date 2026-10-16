@@ -126,6 +126,29 @@ test("names: spaced names are tidied, duplicates refused, blank names get a mess
   await b.context().close();
 });
 
+test("language switch on room pages: FR keeps the seat; ?lang= links work", async ({ browser }) => {
+  const room = await createRoom(LAN);
+  const ana = (await joinRoom(LAN, room.roomCode, "Ana")).body;
+  const { page, errors } = await newPage(browser, "360x640", "en", { [`ascent-session:${room.roomCode}`]: ana.sessionToken });
+  await page.goto(`${LAN}/join/${room.roomCode}`);
+  await expect(page.locator("#meBalance")).toHaveText("1,000.00");
+  await expect(page.locator('#langSwitch [data-lang="en"]')).toHaveAttribute("aria-pressed", "true");
+  await page.locator('#langSwitch [data-lang="fr"]').tap();
+  await expect(page.locator('#langSwitch [data-lang="fr"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".playmoney")).toHaveText(FR["room.playMoney"]);
+  await expect(page.locator("#meName")).toHaveText("Ana"); // same seat after the reload
+  await expect(page.locator("#meBalance")).toHaveText(/^1\s000,00$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "fr-CA");
+
+  const host = await newPage(browser, "1440x900", "fr", { [`ascent-host:${room.roomCode}`]: room.hostToken });
+  await host.page.goto(`${LAN}/host?room=${room.roomCode}&lang=en`);
+  await expect(host.page.locator("#startBtn")).toHaveText(EN["room.host.start"]);
+  await expect(host.page.locator('#langSwitch [data-lang="en"]')).toHaveAttribute("aria-pressed", "true");
+  expect(errors.concat(host.errors)).toEqual([]);
+  await page.context().close();
+  await host.page.context().close();
+});
+
 test("single-player /app/ still plays a round", async ({ browser }) => {
   for (const lang of ["en", "fr"] as const) {
     const { page, errors } = await newPage(browser, "1440x900", lang);

@@ -38,7 +38,16 @@ button { cursor: pointer; }
   max-width: 1440px; margin: 0 auto; padding: var(--space-3) var(--space-4);
 }
 .brand-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
-.room-top .conn { margin-left: auto; }
+.room-top { flex-wrap: wrap; row-gap: var(--space-2); }
+.room-top .lang { margin-left: auto; }
+
+/* EN/FR switch: two full-size touch targets */
+.lang { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: var(--radius-control); }
+.lang button {
+  min-width: 44px; min-height: 44px; padding: 0 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--ink-2); font-weight: 700; font-size: 0.875rem;
+}
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 
 .conn {
   display: inline-flex; align-items: center; gap: 6px;
