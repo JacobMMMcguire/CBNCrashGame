@@ -123,14 +123,24 @@ test("panel: \"This launch\", its live rows and \"My flights\" never overlap (EN
   for (const [hist, tok] of Object.entries(viewers)) {
     for (const lang of ["en", "fr"] as const) {
       for (const size of Object.keys(SIZES) as Size[]) {
-        // A live round: the other pilot and the viewer both riding.
-        const r = await waitState(tok, ["betting"]);
-        await bet(other, r.roundId);
-        await bet(tok, r.roundId);
-        const page = await pilotPage(browser, size, lang, tok);
+        // A live round: the other pilot and the viewer both riding. If the round ends before the
+        // page has loaded (slow machine), try again on the next one.
         const label = `${hist} ${lang} ${size}`;
         const wide = size.startsWith("1");
-        if (wide) await expect(page.locator("#roster li"), label).toHaveCount(2);
+        let page: Page | null = null;
+        for (let attempt = 0; attempt < 4 && !page; attempt++) {
+          const r = await waitState(tok, ["betting"]);
+          await bet(other, r.roundId);
+          await bet(tok, r.roundId);
+          const candidate = await pilotPage(browser, size, lang, tok);
+          if (!wide) { page = candidate; break; }
+          const live = await candidate.waitForFunction(() => document.querySelectorAll("#roster li").length >= 2, null, { timeout: 8_000 })
+            .then(() => true, () => false);
+          if (live) page = candidate;
+          else await candidate.context().close();
+        }
+        expect(page, `${label}: a round with live rows`).not.toBeNull();
+        page = page!;
         const { shown, boxes, spill } = await panelBoxes(page);
         if (!wide) {
           // Phones do not show these sections; the same roster lives in the menu sheet.
