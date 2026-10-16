@@ -1,0 +1,12 @@
+{
+  "name": "ascent-e2e",
+  "private": true,
+  "description": "Playwright end-to-end tests for Ascent multiplayer rooms. Separate from the pytest suite.",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

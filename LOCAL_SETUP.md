@@ -191,6 +191,43 @@ With a tunnel, `ASCENT_HOST` can stay `127.0.0.1`, and the firewall prompt does 
   .venv\Scripts\python -m pytest
   ```
 
+## 7. End-to-end browser tests (Playwright)
+
+The `e2e/` folder holds Playwright tests that drive one host screen and two emulated phones (Pixel 7 viewport, touch on) through a full room: create, QR code, join, duplicate name, a round with a cash-out, leaderboard ranks and ties, reload and reconnect, kick, and an invented session token. They are separate from pytest: `pytest` never collects them, and they need Node.js.
+
+**Install (once).** You need Node.js 20 or newer (`node --version`) and Microsoft Edge, which comes with Windows. The tests use the installed Edge, so you don't need to run `npx playwright install`. Everything installs inside `e2e\node_modules` (git-ignored) at the exact version pinned in `e2e\package-lock.json`:
+
+```powershell
+cd e2e
+npm ci
+```
+
+**Run.** Do the Python setup from section 1 first (the tests start the server with `.venv`):
+
+```powershell
+cd e2e
+npm test
+```
+
+- The tests start their **own** server on port **8799** with `STORAGE_BACKEND=memory` and the fast config `e2e\game.e2e.json` (2.5 s betting, faster climb). They never reuse a running server and never open `data\ascent.sqlite3`; `e2e\serve.py` refuses to start without memory storage.
+- The server is stopped when the run ends. If the run is killed, `serve.py` notices within about a second that the test runner is gone and exits, so no Python process is left behind. To check:
+
+  ```powershell
+  Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -match 'serve\.py' }
+  ```
+
+  No output means nothing is left over.
+- If port 8799 is already taken, the run stops with an error instead of using whatever is listening there.
+
+**When a test fails**, Playwright keeps a screenshot of every page (host and phones) and a trace in `e2e\test-results\` (git-ignored). Open them with:
+
+```powershell
+npx playwright show-report
+npx playwright show-trace test-results\<test folder>\trace.zip
+```
+
+Useful options: `npx playwright test --headed` watches the browsers; `npx playwright test --repeat-each=5` checks for flakiness.
+
 ## Settings reference (`.env`)
 
 | Variable | Default | Meaning |
