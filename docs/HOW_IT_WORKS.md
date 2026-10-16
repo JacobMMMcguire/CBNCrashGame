@@ -119,6 +119,7 @@ Server → clients:
 | `round.cashout` | that player only | Their manual or auto cash-out was applied. |
 | `lobby.updated` | everyone | Join, connect, disconnect, kick, seat expiry, lock or start. |
 | `leaderboard.updated` | everyone | See [Leaderboard](#leaderboard). |
+| `ping` | everyone | Every 10 s, `{serverTime}`. A keep-alive only; see [Reconnecting](#reconnecting). |
 
 ### The round loop and its phases
 
@@ -157,7 +158,7 @@ Each room's engine is built with `round_prefix = "<code>-"`, so every player in 
 
 1. When a phone's last socket closes, the server sets `disconnected_at_ms` and broadcasts `lobby.updated` with `connected: false`. The host shows the player as "reconnecting…".
 2. The seat (name, balance and any active bet) is held for `SEAT_HOLD_SECONDS` (default 120 s). Bets in flight resolve as normal: auto cash-out, otherwise lost.
-3. When the page reopens, `join.js` finds `ascent-session:<code>` in `localStorage` and sends it in the hello. The server finds the same `player_id`, and the `welcome` carries the same balance and the current round, including the player's own `myBet`. The socket client also reconnects by itself after network drops, when the tab becomes visible again, and whenever it notices a gap in `seq`. When the browser reports that the device went offline, the page closes the socket at once, shows **Offline**, and reconnects when the network returns.
+3. When the page reopens, `join.js` finds `ascent-session:<code>` in `localStorage` and sends it in the hello. The server finds the same `player_id`, and the `welcome` carries the same balance and the current round, including the player's own `myBet`. The socket client also reconnects by itself after network drops, when the tab becomes visible again, and whenever it notices a gap in `seq`. When the browser reports that the device went offline, the page closes the socket at once, shows **Offline**, and reconnects when the network returns. A connection can also die without either side noticing (Wi-Fi dropping silently). To catch that, the server's housekeeping loop sends `ping` to every room socket every 10 s, and the page closes and reconnects if it hears **nothing at all for 25 s**.
 4. If the hold runs out, the seat becomes `expired` and the token stops working (`4401`). The phone then asks for a name again. Expiry is checked by a sweeper every 5 s, after every round, and on every reconnect attempt.
 
 ### The event log
@@ -255,7 +256,7 @@ A round in which nobody bet changes nothing, so nothing is sent. Every connectio
   ]}}
 ```
 
-`afterRoundId` is the last settled round, or `null` before the first one.
+`afterRoundId` is the last settled round, or `null` before the first one. Both boards show it as a caption: "Starting balances" before the first round, then "After round N". That way a player whose wager is in flight can see why the board shows their balance from before the bet.
 
 ### Ties and new joiners
 
@@ -346,7 +347,7 @@ The phone page is a single column at most 480 px wide.
 - **Leaderboard:** the compact board, with the player's own row outlined.
 - **Motion:** respects reduced-motion settings.
 
-Strings are in EN and FR (`frontend/locales`). The room pages have **no language switch of their own**: they use the language last chosen in single-player `/app/` on that device (`localStorage` `ascent-lang`), otherwise English.
+Strings are in EN and FR (`frontend/locales`). Both room pages have an **EN/FR switch** in the header (`frontend/js/room/lang.js`). The choice is saved in `localStorage` (`ascent-lang`, shared with single-player) and the page reloads; the server then restores the seat, balance and current bet from the session token. A link can carry `?lang=fr` or `?lang=en`.
 
 ### How PUBLIC_BASE_URL changes between local and hosted use
 
