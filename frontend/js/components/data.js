@@ -52,13 +52,25 @@ export function mountData(store, { openFair, openPilots }) {
   fairChip.addEventListener("click", () => openFair(null));
   const crowd = $("crowd"), crowdText = $("crowdText"), roster = $("roster"), rosterCount = $("rosterCount");
   crowd.addEventListener("click", () => openPilots());
+  // Phone grid and the menu's history section
+  const mBalance = $("mBalance"), mCrowd = $("mCrowd"), mCrowdIn = $("mCrowdIn"), mCrowdOf = $("mCrowdOf");
+  const sheetPills = $("sheetPills"), sheetNet = $("sheetNet");
+  mCrowd.addEventListener("click", () => openPilots());
   let lastRoster = null;
-  pills.addEventListener("click", (e) => {
-    const b = e.target.closest("button[data-round]");
-    if (b) openFair(b.dataset.round);
-  });
+  for (const list of [pills, sheetPills]) {
+    list.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-round]");
+      if (b) openFair(b.dataset.round);
+    });
+  }
 
   mountPosition(store);
+
+  // Phones draw the sky under this panel; the stage's icons and readout sit just below it.
+  const panel = document.querySelector(".data");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--hud-top", `${Math.round(panel.getBoundingClientRect().bottom)}px`);
+  }).observe(panel);
 
   let lastHistory = null;
   store.subscribe((s) => {
@@ -66,6 +78,9 @@ export function mountData(store, { openFair, openPilots }) {
     setText(crowdText, `${s.players.length}/${Math.max(s.online, 1)}`);
     crowd.setAttribute("aria-label", t("players.crowdAria", { n: s.players.length, o: Math.max(s.online, 1) }));
     setText(rosterCount, t("players.count", { n: s.players.length, o: Math.max(s.online, 1) }));
+    setText(mCrowdIn, String(s.players.length));
+    setText(mCrowdOf, t("data.participantsOf", { o: Math.max(s.online, 1) }));
+    mCrowd.setAttribute("aria-label", t("players.crowdAria", { n: s.players.length, o: Math.max(s.online, 1) }));
     if (s.players !== lastRoster || s.lang !== roster.dataset.lang) {
       lastRoster = s.players;
       roster.dataset.lang = s.lang;
@@ -75,10 +90,13 @@ export function mountData(store, { openFair, openPilots }) {
     }
 
     setText(balance, formatCredits(s.balance));
+    setText(mBalance, formatCredits(s.balance));
     const n = s.session.net;
-    setText(net, signed(n));
-    net.classList.toggle("is-pos", n > 0);
-    net.classList.toggle("is-neg", n < 0);
+    for (const el of [net, sheetNet]) {
+      setText(el, signed(n));
+      el.classList.toggle("is-pos", n > 0);
+      el.classList.toggle("is-neg", n < 0);
+    }
     setText(rounds, formatNumber(s.session.rounds));
     setText(best, s.session.best ? formatMultiplier(s.session.best) : "–");
     setText(wagered, formatCredits(s.session.wagered));
@@ -90,10 +108,9 @@ export function mountData(store, { openFair, openPilots }) {
     if (key === lastHistory) return;
     lastHistory = key;
 
-    if (s.history.length === 0) {
-      pills.replaceChildren(Object.assign(document.createElement("li"), { className: "pills__empty", textContent: t("data.noLaunches") }));
-    } else {
-      pills.replaceChildren(...s.history.slice(0, 24).map((h) => {
+    const pillItems = () => (s.history.length === 0
+      ? [Object.assign(document.createElement("li"), { className: "pills__empty", textContent: t("data.noLaunches") })]
+      : s.history.slice(0, 24).map((h) => {
         const li = document.createElement("li");
         const b = Object.assign(document.createElement("button"), { type: "button", className: "pill", textContent: formatMultiplier(h.crash) });
         b.dataset.round = h.roundId;
@@ -102,7 +119,8 @@ export function mountData(store, { openFair, openPilots }) {
         li.append(b);
         return li;
       }));
-    }
+    pills.replaceChildren(...pillItems());
+    sheetPills.replaceChildren(...pillItems());
 
     const mine = s.history.filter((h) => h.myResult).slice(0, 8);
     if (mine.length === 0) {
@@ -135,6 +153,8 @@ function mountPosition(store) {
   const wager = $("posWager"), wagerSub = $("posWagerSub");
   const mult = $("posMult"), multSub = $("posMultSub");
   const payout = $("posPayout"), payoutSub = $("posPayoutSub");
+  // Phone grid: Payout is this launch's net result (profit or loss), not the gross amount.
+  const mWager = $("mWager"), mPayout = $("mPayout"), mPayoutBox = $("mPayoutBox");
 
   function render() {
     const s = store.get();
@@ -176,6 +196,15 @@ function mountPosition(store) {
       }
     }
     if (box.dataset.state !== state) box.dataset.state = state;
+
+    const net = !bet ? null
+      : state === "won" ? Number(bet.payout) - Number(bet.wager)
+      : state === "lost" ? -Number(bet.wager)
+      : state === "riding" ? payoutAt(bet.wager, m) - Number(bet.wager)
+      : 0;
+    setText(mWager, bet ? formatCredits(bet.wager) : "–");
+    setText(mPayout, net === null ? "–" : signed(Math.round(net * 100) / 100));
+    if (mPayoutBox.dataset.state !== state) mPayoutBox.dataset.state = state;
   }
 
   (function loop() {

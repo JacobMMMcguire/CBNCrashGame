@@ -72,6 +72,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 .wide-only { display: none !important; }
+.phone-only { display: none !important; } /* shown by the portrait-phone block at the end */
 
 /* ---------- Stage ---------- */
 
@@ -626,7 +627,150 @@ kbd {
 .pills { max-height: 26px; }
 }
 
+/* ---------- Phone, portrait ----------
+   Top to bottom: a 2×2 read-data panel (balance, this launch's net payout, wager,
+   participants), the stage with sound and menu buttons over its top-right corner
+   and the big multiplier under them, then the controls: wager and auto-eject
+   switch, a segmented row of preset wagers, and one full-width action button.
+   Desktop and landscape layouts never match this query. */
+@media (orientation: portrait) and (max-width: 899.98px) {
+  html, body { overscroll-behavior: none; }
+  body { touch-action: manipulation; } /* fast taps on the action button must not double-tap zoom */
+  .phone-only { display: revert !important; }
+
+  /* Full-bleed: the sky fills the screen from the top edge down under the controls
+     sheet; the read data floats over it and the controls dock to the bottom. The sky
+     stops 24px under the sheet's top edge, so the pad and the cruising rocket (drawn
+     at fixed fractions of the canvas height) are never covered. */
+  .app { padding: 0; gap: 0; }
+  .stage {
+    grid-row: 1 / 3; grid-column: 1;
+    margin-bottom: -24px;
+    border: 0; border-radius: 0;
+  }
+  .data {
+    grid-row: 1; grid-column: 1; z-index: 2; align-self: start;
+    margin: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+    background: rgb(22 9 44 / 0.62);
+    border-color: rgb(205 180 255 / 0.16);
+    box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+  .controls {
+    grid-row: 3; grid-column: 1; z-index: 2;
+    border-radius: 22px 22px 0 0; border-width: 1px 0 0;
+    background: rgb(24 10 46 / 0.94);
+    box-shadow: 0 -10px 30px -14px rgb(0 0 0 / 0.7);
+    padding-bottom: max(14px, env(safe-area-inset-bottom)) !important;
+  }
+  .stage__top { top: var(--hud-top, 120px); padding-top: 6px; }
+  .banner { top: calc(var(--hud-top, 120px) + 52px); }
+  .toasts { bottom: 38px; }
+  .feed { bottom: 38px; }
+
+  /* Read data: 2×2. The stage readout carries the multiplier, so it is not repeated here. */
+  .data { padding: 10px 14px 11px; gap: 0; }
+  .data__head, .data__pos, .data__recent { display: none; }
+  .data__grid.phone-only {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 7px 16px;
+  }
+  .data__grid .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .data__grid .stat__value { font-size: clamp(17px, 5vw, 21px); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+  .data__grid .stat--end { justify-items: end; text-align: right; }
+  #mPayoutBox .stat__value { color: var(--ink-2); transition: color 0.2s; }
+  #mPayoutBox[data-state="riding"] .stat__value,
+  #mPayoutBox[data-state="won"] .stat__value { color: var(--eject); }
+  #mPayoutBox[data-state="lost"] .stat__value { color: var(--abort); }
+  .data__grid .stat { align-content: end; }
+  .stat--crowd {
+    border: 0; background: none; border-radius: var(--radius-sm);
+    padding: 4px 0; margin: -4px 0; /* a full touch target for the Pilots sheet without growing the row */
+  }
+  .stat--crowd .stat__value { color: var(--eject); }
+  .stat--crowd:active { background: rgb(75 227 164 / 0.08); }
+
+  /* Stage: no brand bar, just the connection badge (when there is one) and the two icons */
+  .brand svg, .brand__name { display: none; }
+  .stage__top { padding: 8px 8px 0 10px; }
+  .icon-btn { width: 40px; height: 40px; }
+  .readout { top: calc(var(--hud-top, 120px) + 50px); }
+
+  /* Controls: "Wager ........ Auto eject (switch)", then the inputs */
+  .controls { padding: 12px 14px; }
+  #betForm { gap: 10px; }
+  .controls__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "wl al" "ws ws";
+    align-items: center; gap: 6px 10px;
+  }
+  .field { display: contents; }
+  .field--wager > .label { grid-area: wl; }
+  .field--wager > .stepper { grid-area: ws; height: 46px; }
+  .field--auto > .switch {
+    grid-area: al; justify-self: end; flex-direction: row-reverse; gap: 10px;
+    min-height: 32px; margin: -6px 0; /* a taller tap area without growing the row */
+  }
+  .switch__track { width: 38px; height: 22px; }
+  .switch__track::after { top: 3px; left: 3px; width: 16px; height: 16px; }
+  .switch input:checked + .switch__track::after { transform: translateX(16px); }
+  .field--auto > .input { grid-area: ai; display: none; height: 46px; }
+  #betForm[data-auto] .controls__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "wl al" "ws ai";
+  }
+  #betForm[data-auto] .field--auto > .input { display: flex; animation: reveal 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  .stepper__btn { width: 42px; }
+  .input .stepper__btn { width: 38px; }
+  .input input { padding-left: 4px; }
+  .input__unit { padding-right: 4px; }
+
+  /* Preset wagers: one segmented bar, always shown */
+  .chips {
+    display: flex; gap: 0; height: 40px;
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: rgb(0 0 0 / 0.28); overflow: hidden;
+  }
+  .chip {
+    flex: 1 1 0; min-width: 0; height: 100%;
+    border: 0; border-left: 1px solid var(--line); border-radius: 0; background: none;
+    font-size: 14px;
+  }
+  .chip:first-child { border-left: 0; }
+  .chip:active:not(:disabled) { background: var(--panel-3); }
+  .chip[aria-pressed="true"] { color: var(--flame); background: rgb(255 216 74 / 0.1); box-shadow: inset 0 -2px 0 var(--flame); }
+
+  /* Same height in every mode, so the stage never shifts when Eject appears */
+  .action { min-height: 58px; }
+  .action__main { line-height: 1.15; }
+
+  /* Menu: past games on phones */
+  .kv--row div { display: flex; justify-content: space-between; align-items: baseline; }
+  .kv--row dd { font-weight: 750; font-variant-numeric: tabular-nums; }
+  .pills--sheet { margin-top: 10px; flex-wrap: wrap; overflow: visible; mask-image: none; -webkit-mask-image: none; }
+  .pills--sheet .pill { padding: 6px 11px; } /* tap-sized in the sheet */
+}
+/* Short portrait phones (iPhone SE and smaller): tighter, but nothing hidden */
+@media (orientation: portrait) and (max-width: 899.98px) and (max-height: 640px) {
+  .app { gap: 6px; }
+  .data { padding: 8px 12px 9px; }
+  .data__grid.phone-only { gap: 4px 14px; }
+  .data__grid .stat__value { font-size: 17px; }
+  .readout { top: calc(var(--hud-top, 110px) + 46px); }
+  .controls { padding: 10px 12px; }
+  #betForm { gap: 8px; }
+  .field--wager > .stepper, .field--auto > .input { height: 42px; }
+  .chips { height: 36px; }
+  .action { min-height: 54px; }
+  .action__main, .action[data-mode="eject"] .action__main { font-size: 18px; }
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  #betForm[data-auto] .field--auto > .input { animation: none; }
   .action[data-mode="eject"] { animation: none; }
   .toast, .feed li { animation-name: fade; }
   .readout__label[data-flash] { animation: none; }

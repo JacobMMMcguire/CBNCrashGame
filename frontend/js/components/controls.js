@@ -24,6 +24,12 @@ function stepFor(units, dir) {
   return (w < 10 ? 1 : w < 100 ? 5 : w < 500 ? 25 : 100) * 100;
 }
 
+/** The +/- step for an auto-eject target, in hundredths: 0.10 near 1×, coarser higher up. */
+function autoStepFor(hundredths, dir) {
+  const m = (hundredths - (dir < 0 ? 1 : 0)) / 100;
+  return m < 2 ? 10 : m < 5 ? 25 : m < 10 ? 50 : m < 50 ? 100 : 1000;
+}
+
 function evaluate(s) {
   const cfg = s.config;
   const wager = parseCreditsInput(s.wagerText);
@@ -81,6 +87,20 @@ export function mountControls(store, actions) {
   minus.addEventListener("click", () => nudge(-1));
   plus.addEventListener("click", () => nudge(1));
 
+  const autoMinus = $("autoMinus"), autoPlus = $("autoPlus");
+  function nudgeAuto(dir) {
+    const s = store.get(), cfg = s.config;
+    const lo = Math.round(cfg.autoCashOutMin * 100), hi = Math.round(cfg.maxMultiplier * 100);
+    const cur = Math.round((parseMultiplierInput(s.autoText) ?? cfg.autoCashOutMin) * 100);
+    const step = autoStepFor(cur, dir);
+    // Snap to the step grid so 2.37 + 0.25 lands on 2.50, not 2.62.
+    const next = dir > 0 ? Math.floor(cur / step) * step + step : Math.ceil(cur / step) * step - step;
+    auto.value = (Math.min(hi, Math.max(lo, next)) / 100).toFixed(2);
+    actions.setAuto({ autoText: auto.value });
+  }
+  autoMinus.addEventListener("click", () => nudgeAuto(-1));
+  autoPlus.addEventListener("click", () => nudgeAuto(1));
+
   function act() {
     const s = store.get();
     switch (modeOf(s)) {
@@ -135,7 +155,8 @@ export function mountControls(store, actions) {
     // Inputs lock while a bet is on board, queued, or being sent.
     const locked = ["eject", "waiting", "cancel", "sending", "refill"].includes(mode) || Boolean(bet && s.round.state === "betting");
     for (const el of [wager, minus, plus, autoOn]) el.disabled = locked;
-    auto.disabled = locked || !s.autoOn;
+    for (const el of [auto, autoMinus, autoPlus]) el.disabled = locked || !s.autoOn;
+    form.toggleAttribute("data-auto", s.autoOn); // phones show the target field only while auto eject is on
     chips.querySelectorAll(".chip").forEach((c) => {
       c.disabled = locked;
       if (c.dataset.value) c.setAttribute("aria-pressed", String(c.dataset.value === w));

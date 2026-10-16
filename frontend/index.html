@@ -67,6 +67,27 @@
   <!-- Read data -->
   <section class="panel data" aria-labelledby="dataTitle">
     <h2 id="dataTitle" class="sr-only" data-i18n="data.title">Flight data</h2>
+
+    <!-- Phone (portrait): four numbers in a 2×2 grid. The big readout on the stage carries the multiplier. -->
+    <div class="data__grid phone-only">
+      <div class="stat">
+        <span class="label" data-i18n="data.balance">Balance</span>
+        <span class="stat__value" id="mBalance">–</span>
+      </div>
+      <div class="stat stat--end" id="mPayoutBox" data-state="none">
+        <span class="label" data-i18n="data.payout">Payout</span>
+        <span class="stat__value" id="mPayout">–</span>
+      </div>
+      <div class="stat">
+        <span class="label" data-i18n="controls.wager">Wager</span>
+        <span class="stat__value" id="mWager">–</span>
+      </div>
+      <button type="button" class="stat stat--end stat--crowd" id="mCrowd">
+        <span class="label" data-i18n="data.participants">Participants</span>
+        <span class="stat__value"><span id="mCrowdIn">0</span><span class="unit" id="mCrowdOf"></span></span>
+      </button>
+    </div>
+
     <div class="data__head">
       <div class="stat stat--balance">
         <span class="label" data-i18n="data.balance">Balance</span>
@@ -153,8 +174,10 @@
             <span data-i18n="controls.auto">Auto eject</span>
           </label>
           <div class="input">
+            <button type="button" class="stepper__btn phone-only" id="autoMinus" aria-label="Lower auto eject target" data-i18n-attr="aria-label:controls.autoLess">−</button>
             <input id="auto" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Auto eject multiplier" data-i18n-attr="aria-label:controls.autoAria">
             <span class="input__unit">×</span>
+            <button type="button" class="stepper__btn phone-only" id="autoPlus" aria-label="Raise auto eject target" data-i18n-attr="aria-label:controls.autoMore">+</button>
           </div>
         </div>
       </div>
@@ -184,6 +207,15 @@
     </button>
   </div>
   <div class="sheet__body">
+    <!-- Phone: past games live here instead of on the main screen -->
+    <section class="sheet__sec phone-only" id="historySec">
+      <h3 data-i18n="data.recent">Recent launches</h3>
+      <dl class="kv kv--row">
+        <div><dt data-i18n="data.net">Session</dt><dd id="sheetNet">0.00</dd></div>
+      </dl>
+      <ol class="pills pills--sheet" id="sheetPills" aria-label="Recent crash points" data-i18n-attr="aria-label:data.recentAria"></ol>
+    </section>
+
     <section class="sheet__sec">
       <h3 data-i18n="menu.language">Language</h3>
       <div class="seg" id="langSwitch" role="group" aria-labelledby="menuTitle"></div>
