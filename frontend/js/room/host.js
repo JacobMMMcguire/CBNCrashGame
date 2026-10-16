@@ -96,7 +96,8 @@ export function joinUrl(publicBaseUrl, code) {
 function renderJoin() {
   const url = joinUrl(view.room.publicBaseUrl, view.room.roomCode);
   $("roomCode").textContent = view.room.roomCode;
-  $("joinUrl").textContent = url;
+  const cut = url.lastIndexOf("/join/");
+  $("joinUrl").replaceChildren(url.slice(0, cut), document.createElement("wbr"), url.slice(cut));
   const svg = qrSvg(url, { label: t("room.host.qrLabel", { code: view.room.roomCode }) });
   $("qr").replaceChildren(...(svg ? [svg] : []));
   const host = new URL(url).hostname;

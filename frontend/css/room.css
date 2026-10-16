@@ -113,7 +113,8 @@ button { cursor: pointer; }
 .qr:empty { display: none; }
 .qr svg { display: block; width: 100%; height: 100%; }
 .room-code { font-family: var(--font-data); font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 500; letter-spacing: 0.18em; line-height: 1; }
-.join-url { font-family: var(--font-data); font-size: 0.875rem; color: var(--ink-2); word-break: break-all; }
+/* Breaks before "/join/<code>" (a <wbr> in host.js), never inside the code; anywhere only as a last resort. */
+.join-url { font-family: var(--font-data); font-size: 0.875rem; color: var(--ink-2); overflow-wrap: anywhere; }
 .host-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-3); }
 
 .lobby { display: grid; gap: var(--space-3); }
@@ -185,9 +186,6 @@ button { cursor: pointer; }
 }
 .btn--action[data-mode="cashout"] { background: var(--win); border-color: var(--win); color: var(--bg); }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
 /* Short phone screens (e.g. 360x640): tighten the stage so the bet panel and the
    main button fit without the sticky button covering the quick-bet chips. */
 @media (max-height: 700px) {
@@ -198,3 +196,6 @@ button { cursor: pointer; }
   .bet { gap: var(--space-2); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
