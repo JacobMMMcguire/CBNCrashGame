@@ -20,6 +20,9 @@ const HOLD = 0.6;           // seconds on the pad while the engines spool up
 const STAR_PARALLAX = 0.35;
 const STAR_COUNT = 200;
 const CLOUD_COUNT = 14;
+// How far an ejected astronaut drifts sideways, relative to the original kick (1.0).
+// Sideways travel is about 0.29-0.40 x min(stage width, 700px) at 1.3 (0.22-0.31 before).
+const EJECT_TRAVEL = 1.3;
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
@@ -220,7 +223,7 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     if (!mine && astronauts.length > 8) return;
     // The astronaut kicks clear of the cockpit, then tumbles away as the rocket climbs on.
     const side = Math.random() < 0.5 ? -1 : 1;
-    astronauts.push({ x: padX, y: rocketScreenY() - RH * 0.7, vx: side * rand(0.4, 0.55) * Math.min(W, 700), vy: -H * 0.2,
+    astronauts.push({ x: padX, y: rocketScreenY() - RH * 0.7, vx: side * rand(0.4, 0.55) * Math.min(W, 700) * EJECT_TRAVEL, vy: -H * 0.2,
       age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), alpha: mine ? 1 : 0.75, mine,
       tag: makeTag(name, mine) });
   }
@@ -336,6 +339,9 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
       c.vy = Math.min(H * 0.22 + speed * 0.04, c.vy + H * 0.9 * dt);
       c.vx *= Math.exp(-1.8 * dt);
       c.x += c.vx * dt;
+      // Never drift past the stage edge: stop at the side with the whole body visible.
+      const half = RH * ASTRONAUT_SIZE * 0.5;
+      if (c.x < half || c.x > W - half) { c.x = Math.min(Math.max(c.x, half), W - half); c.vx = 0; }
       c.y += c.vy * dt;
       c.rot += c.spin * dt;
     }
