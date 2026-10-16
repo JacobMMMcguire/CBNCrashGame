@@ -35,5 +35,12 @@ export function renderLeaderboard(list, board, { me = null, limit = Infinity } =
     li.append(rank, name, bal);
     return li;
   }));
-  list.closest("[data-lb]")?.toggleAttribute("data-empty", board.entries.length === 0);
+  const panel = list.closest("[data-lb]");
+  panel?.toggleAttribute("data-empty", board.entries.length === 0);
+  // Which round the balances are from, so a wager in flight does not look like a wrong number.
+  const caption = panel?.querySelector("[data-lb-caption]");
+  if (caption) {
+    const n = board.afterRoundId?.match(/r_(\d+)$/)?.[1];
+    caption.textContent = n ? t("room.lb.afterRound", { n }) : t("room.lb.beforeFirst");
+  }
 }

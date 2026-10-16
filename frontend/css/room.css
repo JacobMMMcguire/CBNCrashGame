@@ -147,6 +147,7 @@ button { cursor: pointer; }
 /* ---------- Leaderboard ---------- */
 .lb { display: grid; gap: var(--space-3); }
 .lb .lb-empty { display: none; }
+.lb-caption { font-size: 0.8125rem; font-weight: 600; color: var(--ink-2); }
 .lb[data-empty] .lb-empty { display: block; }
 .lb-list { display: grid; gap: var(--space-1); counter-reset: none; }
 .lb-row {

@@ -50,6 +50,7 @@ test("leaderboard: ties share ranks 1,2,2,4; updates on kick and join; own row h
   await expect.poll(() => ranks(hostPage)).toEqual(["1", "2", "2", "4"]);
   expect(await names(hostPage)).toEqual(["Ava", "Bea", "Cy", "Dee"]);
   expect(await balances(hostPage)).toEqual(["1,000.00", "990.00", "990.00", "950.00"]);
+  await expect(hostPage.locator("[data-lb-caption]")).toHaveText("After round 1");
   const bigRow = await hostPage.locator(".lb-row").first().evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   expect(bigRow).toBeGreaterThanOrEqual(20); // large board on the host screen
 

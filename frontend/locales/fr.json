@@ -180,6 +180,8 @@
   "room.lb.titleShort": "Classement · Solde (crédits fictifs)",
   "room.lb.basis": "Classé par solde (crédits fictifs). Mis à jour après chaque manche.",
   "room.lb.empty": "Les joueurs apparaissent ici en rejoignant.",
+  "room.lb.afterRound": "Après la manche {n}",
+  "room.lb.beforeFirst": "Soldes de départ",
   "room.lb.you": "{name} (vous)",
 
   "room.host.qrLabel": "Code QR pour rejoindre la salle {code}"

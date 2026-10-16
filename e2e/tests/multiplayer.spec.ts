@@ -90,6 +90,7 @@ test("host, two phones: join, play, leaderboard, reconnect, kick, invented token
     await expect(ana.locator('.lb-row[data-me="true"]')).toHaveText(/Ana \(you\)/);
     await expect(ben.locator('.lb-row[data-me="true"]')).toHaveText(/Ben \(you\)/);
     await expect(host.locator('.lb-row[data-me="true"]')).toHaveCount(0);
+    for (const page of [host, ana]) await expect(page.locator("[data-lb-caption]")).toHaveText("Starting balances");
   });
 
   let payoutUnits = 0;
@@ -130,6 +131,7 @@ test("host, two phones: join, play, leaderboard, reconnect, kick, invented token
       await expect.poll(() => balances(page)).toEqual([anaBalance, "990.00"]);
     }
     expect(await names(host)).toEqual(["Ana", "Ben"]);
+    for (const page of [host, ana, ben]) await expect(page.locator("[data-lb-caption]")).toHaveText("After round 1");
     expect(await names(ana)).toEqual(["Ana (you)", "Ben"]);
     expect(await names(ben)).toEqual(["Ana", "Ben (you)"]);
   });
