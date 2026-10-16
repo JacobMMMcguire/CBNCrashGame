@@ -182,7 +182,8 @@ button { cursor: pointer; }
 .me__unit { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--ink-3); }
 .stage--phone { padding: var(--space-6) var(--space-4); }
 .stage--phone .stage__mult { font-size: clamp(3.5rem, 22vw, 6rem); }
-.result { min-height: 1.5em; text-align: center; font-weight: 700; font-size: 1.125rem; }
+.result { text-align: center; font-weight: 700; font-size: 1.125rem; }
+.result:empty { display: none; } /* no empty band under the multiplier between results */
 .result[data-tone="win"] { color: var(--win); }
 .result[data-tone="lost"] { color: var(--abort); }
 .bet { display: grid; gap: var(--space-3); }
