@@ -101,7 +101,7 @@ export function mountStage(store, audio, { onSoundChange }) {
 
     const wasActive = prev.myBet?.status === "active" && prev.round.roundId === s.round.roundId;
     if (wasActive && s.myBet?.status === "cashed-out") {
-      scene.eject();
+      scene.eject({ name: s.me?.name });
       audio.play("cashout");
       const profit = formatCredits(Number(s.myBet.payout) - Number(s.myBet.wager));
       toast(t(s.myBet.auto ? "toast.autoEjected" : "toast.ejected", { p: profit, m: formatMultiplier(s.myBet.multiplier) }), "win");
@@ -114,7 +114,7 @@ export function mountStage(store, audio, { onSoundChange }) {
       const before = new Map(prev.players.map((p) => [p.playerId, p.status]));
       for (const p of s.players) {
         if (p.playerId === s.me?.playerId || p.status !== "cashed-out" || before.get(p.playerId) === "cashed-out") continue;
-        if (s.round.state === "in-flight") scene.eject({ mine: false });
+        if (s.round.state === "in-flight") scene.eject({ mine: false, name: p.name });
         feedLine(p);
       }
     }
