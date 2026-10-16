@@ -63,7 +63,7 @@ button { cursor: pointer; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn--primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .btn--ghost { background: transparent; border-color: var(--line); color: var(--ink-2); }
-.btn--sm { min-height: 36px; padding: 4px 12px; font-size: 0.875rem; }
+.btn--sm { min-height: 44px; padding: 4px 14px; font-size: 0.875rem; } /* still a full touch target */
 .btn--lg { min-height: 56px; font-size: 1.0625rem; }
 .btn--xl { width: 100%; min-height: 64px; font-size: 1.25rem; }
 .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
