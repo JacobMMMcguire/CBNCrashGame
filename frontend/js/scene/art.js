@@ -151,6 +151,10 @@ function roundedFlame(ctx, x, y, w, len) {
   ctx.fill();
 }
 
+/** Astronaut height as a fraction of the rocket's height. Every pilot's astronaut uses it
+ *  (yours and everyone else's), so they are all drawn the same size. */
+export const ASTRONAUT_SIZE = 0.3;
+
 /**
  * The ejected astronaut, drawn in the shuttle's flat style. (x, y) is the
  * centre of the torso, s the full height, rot the tumble angle, and t a clock

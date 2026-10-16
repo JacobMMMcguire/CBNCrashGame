@@ -11,7 +11,7 @@
 // The scene never decides an outcome. stage.js feeds it the phase and the live
 // multiplier each frame; the server owns the crash point.
 
-import { drawAstronaut, drawBody, drawFlame, drawHills, drawRocket, drawTower } from "./art.js";
+import { ASTRONAUT_SIZE, drawAstronaut, drawBody, drawFlame, drawHills, drawRocket, drawTower } from "./art.js";
 import { MILESTONES } from "./milestones.js";
 
 const TOP_SPEED = 9;        // screen heights per second at full speed
@@ -208,14 +208,14 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     }
   }
 
-  /** An astronaut leaves the rocket. Other players' astronauts are smaller and fainter than yours. */
+  /** An astronaut leaves the rocket. Every astronaut is the same size; other players' are a little fainter than yours. */
   function eject({ mine = true } = {}) {
     if (mode !== "flight" || !rocketAlive) return;
     if (!mine && astronauts.length > 8) return;
     // The astronaut kicks clear of the cockpit, then tumbles away as the rocket climbs on.
     const side = Math.random() < 0.5 ? -1 : 1;
     astronauts.push({ x: padX, y: rocketScreenY() - RH * 0.7, vx: side * rand(0.4, 0.55) * Math.min(W, 700), vy: -H * 0.2,
-      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), scale: mine ? 1 : 0.62, alpha: mine ? 1 : 0.75 });
+      age: 0, rot: 0, spin: side * rand(0.8, 1.6), phase: rand(0, 10), alpha: mine ? 1 : 0.75 });
   }
 
   // ---------- Per-frame update ----------
@@ -419,7 +419,7 @@ export function createScene(canvas, { reducedMotion = false, onMilestone = () =>
     drawClouds(true);
     for (const c of astronauts) {
       ctx.globalAlpha = c.alpha;
-      drawAstronaut(ctx, c.x, c.y, RH * 0.3 * c.scale, reducedMotion ? c.phase : c.age + c.phase, reducedMotion ? 0 : c.rot);
+      drawAstronaut(ctx, c.x, c.y, RH * ASTRONAUT_SIZE, reducedMotion ? c.phase : c.age + c.phase, reducedMotion ? 0 : c.rot);
       ctx.globalAlpha = 1;
     }
     drawFireball();
