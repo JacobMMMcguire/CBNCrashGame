@@ -9,6 +9,7 @@ import { applyI18n, setLanguage, t } from "../i18n.js";
 import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
 import { renderLeaderboard } from "./leaderboard.js";
+import { qrSvg } from "./qr.js";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -96,6 +97,8 @@ function renderJoin() {
   const url = joinUrl(view.room.publicBaseUrl, view.room.roomCode);
   $("roomCode").textContent = view.room.roomCode;
   $("joinUrl").textContent = url;
+  const svg = qrSvg(url, { label: t("room.host.qrLabel", { code: view.room.roomCode }) });
+  $("qr").replaceChildren(...(svg ? [svg] : []));
   const host = new URL(url).hostname;
   $("localWarn").hidden = !["localhost", "127.0.0.1", "0.0.0.0", "[::1]"].includes(host);
   document.title = `Ascent · ${view.room.roomCode}`;

@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app/css/tokens.css">
 <link rel="stylesheet" href="/app/css/room.css">
+<!-- QR encoder (MIT, vendored): defines window.qrcode before the module runs -->
+<script src="/app/vendor/qrcode-generator/qrcode.js"></script>
 <script type="module" src="/app/js/room/host.js"></script>
 </head>
 <body class="room room--host">
@@ -32,7 +34,7 @@
   <div class="host-grid" id="hostGrid" hidden>
     <section class="panel join-panel" aria-labelledby="joinTitle">
       <h2 class="label" id="joinTitle" data-i18n="room.host.joinTitle">Scan to join</h2>
-      <div class="qr" id="qr" aria-hidden="true"></div>
+      <div class="qr" id="qr"></div>
       <p class="room-code" id="roomCode" aria-describedby="codeHint"></p>
       <p class="hint" id="codeHint" data-i18n="room.host.codeHint">Or open the link below and type the code</p>
       <p class="join-url" id="joinUrl"></p>

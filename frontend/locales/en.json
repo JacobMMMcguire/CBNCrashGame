@@ -178,5 +178,7 @@
   "room.lb.titleShort": "Leaderboard · Balance (play credits)",
   "room.lb.basis": "Ranked by balance (play credits). Updated after each round.",
   "room.lb.empty": "Players appear here as they join.",
-  "room.lb.you": "{name} (you)"
+  "room.lb.you": "{name} (you)",
+
+  "room.host.qrLabel": "QR code to join room {code}"
 }
