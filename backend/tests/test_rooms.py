@@ -360,3 +360,18 @@ def test_housekeeping_loop_pings_every_ten_seconds():
     asyncio.run(run_for(35_000))
     assert PING_EVERY_MS == 10_000
     assert [b - a for a, b in zip(pings, pings[1:])] == [10_000] * (len(pings) - 1) and len(pings) >= 3
+
+
+def test_room_roster_events_use_the_chosen_names(env):
+    client, _, _ = env
+    code = host_room(client)["roomCode"]
+    ana = join_ok(client, code, "Ana Lee")
+    room = room_of(client, code)
+    assert room.ledger.get_account(ana["playerId"]).name == "Ana Lee"
+    with socket(client, code) as ws:
+        hello(ws, "player", ana["sessionToken"])
+        client.portal.call(room.engine.open_betting)
+        rid = recv(ws, "round.betting")["roundId"]
+        assert bet(ws, rid)["status"] == 201  # (bet() reads past the round.players it triggers)
+        roster = client.portal.call(room.engine.roster)
+        assert [p["name"] for p in roster] == ["Ana Lee"]

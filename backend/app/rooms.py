@@ -162,6 +162,8 @@ class Room:
         token = secrets.token_urlsafe(32)
         now = self.clock.now_ms()
         account = self.ledger.ensure_account(player_id, self.config.defaultLanguage)
+        # The engine's public roster (round.players) shows this name, not a generated callsign.
+        self.ledger.set_name(player_id, name)
         self.storage.add_player(PlayerRecord(player_id, self.code, name, hash_token(token), now, account.balance))
         # Not connected yet: the seat-hold timer covers a phone that never opens the socket.
         seat = Seat(player_id, name, next(self._join_counter), disconnected_at_ms=now)
