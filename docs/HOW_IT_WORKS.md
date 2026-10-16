@@ -157,7 +157,7 @@ Each room's engine is built with `round_prefix = "<code>-"`, so every player in 
 
 1. When a phone's last socket closes, the server sets `disconnected_at_ms` and broadcasts `lobby.updated` with `connected: false`. The host shows the player as "reconnecting…".
 2. The seat (name, balance and any active bet) is held for `SEAT_HOLD_SECONDS` (default 120 s). Bets in flight resolve as normal: auto cash-out, otherwise lost.
-3. When the page reopens, `join.js` finds `ascent-session:<code>` in `localStorage` and sends it in the hello. The server finds the same `player_id`, and the `welcome` carries the same balance and the current round, including the player's own `myBet`. The socket client also reconnects by itself after network drops, when the tab becomes visible again, and whenever it notices a gap in `seq`.
+3. When the page reopens, `join.js` finds `ascent-session:<code>` in `localStorage` and sends it in the hello. The server finds the same `player_id`, and the `welcome` carries the same balance and the current round, including the player's own `myBet`. The socket client also reconnects by itself after network drops, when the tab becomes visible again, and whenever it notices a gap in `seq`. When the browser reports that the device went offline, the page closes the socket at once, shows **Offline**, and reconnects when the network returns.
 4. If the hold runs out, the seat becomes `expired` and the token stops working (`4401`). The phone then asks for a name again. Expiry is checked by a sweeper every 5 s, after every round, and on every reconnect attempt.
 
 ### The event log
@@ -266,7 +266,7 @@ A round in which nobody bet changes nothing, so nothing is sent. Every connectio
 
 The ranking is computed only on the server, from its own ledger. No client message can set a balance, a rank or a name after joining. Phones can send only `place_bet` and `cash_out`, and anything else (`set_rank`, a fake `leaderboard.updated`) gets `422 INVALID_REQUEST`. The page draws the rows exactly as received and never sorts them; the only thing it does locally is highlight the row whose `playerId` matches its own.
 
-On the host screen the board is large (one row per player, about 22 px text). On a phone it is compact: it shows the top 5 and always includes the player's own row, outlined in amber and labelled "(you)".
+On the host screen the board is large: about 22 px text on screens 1000 px or wider, such as laptops, TVs and projectors. In a narrow host window the rows drop to phone size so names still fit, wrapping at spaces or hyphens instead of being cut off. On a phone it is compact: it shows the top 5 and always includes the player's own row, outlined in amber and labelled "(you)".
 
 ### Flow
 
@@ -297,6 +297,7 @@ On the host screen the board is large (one row per player, about 22 px text). On
 | `backend/app/rooms.py` | `Room.join`, `clean_name`, `name_key`; token and id creation. |
 | `backend/app/settings.py` | `PUBLIC_BASE_URL`. |
 | `backend/tests/test_qr_join.py`, `backend/tests/test_rooms.py` | Tests for pages, the encoder, the base URL, joining and names. |
+| `e2e/tests/multiplayer.spec.ts`, `e2e/tests/review.spec.ts` | Playwright browser tests: the full room flow, QR link and encoding, names, every screen in EN/FR at three sizes (see LOCAL_SETUP.md §7). |
 
 ### How the link and QR are generated
 
@@ -305,7 +306,7 @@ On the host screen the board is large (one row per player, about 22 px text). On
 3. `qr.js` asks the vendored encoder for the smallest QR version that fits, at error-correction level M. It reads the dark modules and builds an `<svg>` (one path, black on white, quiet zone included) with DOM calls, so no HTML string is inserted. It is drawn black on white in both themes because scanners need that contrast.
 4. Under the QR code, the page shows the **room code** in large type and the full link, so a player can type either one. If the link's host is `localhost` or `127.0.0.1`, the page shows a warning that phones cannot open it.
 
-The encoder works with no internet connection; nothing is fetched from a CDN. During development the output was checked by decoding generated codes for a LAN link, an https link and a localhost link back to the exact URLs.
+The encoder works with no internet connection; nothing is fetched from a CDN. The output was checked by decoding QR codes back to the exact URLs: codes generated for a LAN link, an https link and a localhost link, and codes cropped from screenshots of the host screen at 360×640, 390×844 and 1440×900 in English and French. On a laptop the code is drawn 280 px wide.
 
 ### What happens on scan
 
@@ -341,11 +342,11 @@ The phone sends `POST /api/v1/rooms/K7QX/players` with `{"name": "Ana"}`. `Room.
 The phone page is a single column at most 480 px wide.
 - **Play-money label:** a sticky "Play money" banner at the top, and the balance labelled "play credits".
 - **Wager:** a 56 px-tall input and quick-bet chips.
-- **Main button:** one 84 px button that is always reachable at the bottom. It changes between **Place bet · 10.00**, **CASH OUT** (green) and waiting states.
+- **Main button:** one 84 px button (64 px on screens shorter than 700 px) that is always reachable at the bottom. It changes between **Place bet · 10.00 play credits**, **CASH OUT** (green) and waiting states. Every amount on the phone names its unit ("play credits").
 - **Leaderboard:** the compact board, with the player's own row outlined.
 - **Motion:** respects reduced-motion settings.
 
-Strings are in EN and FR (`frontend/locales`).
+Strings are in EN and FR (`frontend/locales`). The room pages have **no language switch of their own**: they use the language last chosen in single-player `/app/` on that device (`localStorage` `ascent-lang`), otherwise English.
 
 ### How PUBLIC_BASE_URL changes between local and hosted use
 

@@ -81,7 +81,7 @@ The brief lists these optional enhancements: auto cash out, configurable betting
 | Real-time channel | WebSocket (`/api/v1/ws`) | Skeleton running |
 | Frontend | Plain HTML, CSS and JavaScript ES modules, no build step | Shell running |
 | Storage | Single-player: in memory (stub). Multiplayer: `Storage` interface, SQLite by default (`STORAGE_BACKEND`), Supabase placeholder | Partly real |
-| Testing | pytest + httpx (FastAPI TestClient) | 63 tests |
+| Testing | pytest + httpx (FastAPI TestClient), plus Playwright browser tests for multiplayer in `e2e/` | 94 pytest tests; 14 Playwright tests |
 | Hosting | TBD | Open, see [HANDOFF](docs/HANDOFF.md) |
 
 The crash-point RNG, the provably fair commitment and the ledger are **SKELETON ONLY stubs**: not random, not fair, not persistent. See [docs/SKELETON.md](docs/SKELETON.md) for what is real, what is stubbed and how to replace each stub.
