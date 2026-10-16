@@ -18,7 +18,12 @@
             "INVALID_REQUEST",
             "ROUND_NOT_IN_FLIGHT",
             "ROUND_NOT_FOUND",
-            "ROUND_NOT_FINISHED"
+            "ROUND_NOT_FINISHED",
+            "ROOM_NOT_FOUND",
+            "ROOM_LOCKED",
+            "ROOM_FULL",
+            "NAME_TAKEN",
+            "FORBIDDEN"
           ],
           "title": "Code",
           "type": "string"

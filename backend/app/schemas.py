@@ -21,13 +21,15 @@ SignedCredits = Annotated[str, Field(pattern=SIGNED_CREDITS_PATTERN, examples=["
 Multiplier = Annotated[float, Field(ge=1.0, description="Two decimals, floored")]
 IsoTime = Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")]
 Hex64 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-RoundId = Annotated[str, Field(pattern=r"^r_\d+$")]
+# Single-player rounds are "r_12"; room rounds carry the room code: "K7QX-r_12".
+RoundId = Annotated[str, Field(pattern=r"^([A-Z0-9]{4}-)?r_\d+$")]
 BetId = Annotated[str, Field(pattern=r"^b_\d+$")]
 RoundState = Literal["idle", "betting", "in-flight", "crashed", "settled"]
 ErrorCode = Literal[
     "BET_WINDOW_CLOSED", "BET_OUT_OF_RANGE", "INSUFFICIENT_BALANCE", "ALREADY_BET",
     "NO_ACTIVE_BET", "TOO_LATE", "IDEMPOTENCY_KEY_REUSED", "UNAUTHORIZED",
     "INVALID_REQUEST", "ROUND_NOT_IN_FLIGHT", "ROUND_NOT_FOUND", "ROUND_NOT_FINISHED",
+    "ROOM_NOT_FOUND", "ROOM_LOCKED", "ROOM_FULL", "NAME_TAKEN", "FORBIDDEN",
 ]
 
 

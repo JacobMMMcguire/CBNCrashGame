@@ -97,6 +97,7 @@ class RoundEngine:
         fairness: FairnessScheme,
         clock: Clock,
         sink: EventSink | None = None,
+        round_prefix: str = "",
     ) -> None:
         self.config = config
         self.ledger = ledger
@@ -104,6 +105,8 @@ class RoundEngine:
         self.fairness = fairness
         self.clock = clock
         self.sink: EventSink = sink or NullSink()
+        # Rooms pass "K7QX-" so round ids are unique across rooms (K7QX-r_1).
+        self.round_prefix = round_prefix
         self._round_counter = 0
         self._finished: OrderedDict[str, Round] = OrderedDict()
         self.round = self._new_round()
@@ -122,7 +125,7 @@ class RoundEngine:
 
     def _new_round(self) -> Round:
         self._round_counter += 1
-        round_id = f"r_{self._round_counter}"
+        round_id = f"{self.round_prefix}r_{self._round_counter}"
         secret = self.provider.new_round(round_id)
         return Round(round_id, secret, self.fairness.commit(secret.server_seed))
 

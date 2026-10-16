@@ -27,7 +27,7 @@ CLOSE_TOO_SLOW = 4408
 
 
 class _Connection:
-    def __init__(self, ws: WebSocket, account_id: str) -> None:
+    def __init__(self, ws: WebSocket, account_id: str | None) -> None:
         self.ws = ws
         self.account_id = account_id
         self.seq = 0
@@ -49,32 +49,48 @@ class Broadcaster:
         for conn in list(self._conns):
             if account_id is not None and conn.account_id != account_id:
                 continue
-            conn.seq += 1
-            # Envelope order matches the contract: type, seq, roundId, data.
-            message = {"type": event["type"], "seq": conn.seq}
-            message.update((k, v) for k, v in event.items() if k != "type")
-            try:
-                conn.queue.put_nowait(message)
-            except asyncio.QueueFull:
-                # The client fell too far behind. Drop it; it will reconnect and resync.
-                log.warning("dropping slow client %s", conn.account_id)
-                self._conns.discard(conn)
-                if conn.sender is not None:
-                    conn.sender.cancel()
-                asyncio.ensure_future(conn.ws.close(code=CLOSE_TOO_SLOW))
+            self.send(conn, event)
 
-    async def serve(self, ws: WebSocket, account_id: str) -> None:
+    def send(self, conn: _Connection, event: dict) -> None:
+        """Queue one event for one connection, numbering it with that connection's ``seq``."""
+        if conn not in self._conns:
+            return
+        conn.seq += 1
+        # Envelope order matches the contract: type, seq, roundId, data.
+        message = {"type": event["type"], "seq": conn.seq}
+        message.update((k, v) for k, v in event.items() if k != "type")
+        try:
+            conn.queue.put_nowait(message)
+        except asyncio.QueueFull:
+            # The client fell too far behind. Drop it; it will reconnect and resync.
+            log.warning("dropping slow client %s", conn.account_id)
+            self.disconnect(conn)
+            asyncio.ensure_future(conn.ws.close(code=CLOSE_TOO_SLOW))
+
+    def connect(self, ws: WebSocket, account_id: str | None) -> _Connection:
+        """Register an accepted socket. ``account_id=None`` receives only public events."""
         conn = _Connection(ws, account_id)
         self._conns.add(conn)
         conn.sender = asyncio.create_task(self._send_loop(conn))
+        return conn
+
+    def disconnect(self, conn: _Connection) -> None:
+        self._conns.discard(conn)
+        if conn.sender is not None:
+            conn.sender.cancel()
+
+    def connections_for(self, account_id: str) -> list[_Connection]:
+        return [c for c in self._conns if c.account_id == account_id]
+
+    async def serve(self, ws: WebSocket, account_id: str) -> None:
+        conn = self.connect(ws, account_id)
         try:
             while True:
                 await ws.receive_text()  # ignored; keeps the socket read so disconnects are seen
         except (WebSocketDisconnect, RuntimeError):
             pass
         finally:
-            self._conns.discard(conn)
-            conn.sender.cancel()
+            self.disconnect(conn)
 
     async def _send_loop(self, conn: _Connection) -> None:
         try:

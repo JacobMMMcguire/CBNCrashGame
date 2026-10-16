@@ -7,17 +7,15 @@ thread as the engine, so each command's check-then-act is atomic.
 from __future__ import annotations
 
 import json
-import uuid
 from typing import Callable
 
 from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse
 
+from . import commands
 from .auth import account_id_from_header
 from .config import public_config
-from .errors import GameError
-from .idempotency import StoredResponse
-from .money import format_credits, multiplier_from_float, multiplier_to_float, parse_credits
+from .money import format_credits, multiplier_to_float
 from .schemas import (
     AccountResponse, BetResponse, CashOutRequest, CashOutResponse, CurrentRoundResponse,
     HealthResponse, HistoryResponse, PlaceBetRequest, PublicConfigResponse, VerifyResponse, wire,
@@ -37,32 +35,13 @@ def current_account(request: Request, authorization: str | None = Header(default
     return account_id
 
 
-def _check_key(key: str | None) -> str:
-    try:
-        if key is None or uuid.UUID(key).version != 4:
-            raise ValueError
-    except ValueError:
-        raise GameError("INVALID_REQUEST", "Idempotency-Key header must be a UUID v4.") from None
-    return key.lower()
-
-
 def _idempotent(request: Request, account_id: str, key: str | None, body: dict,
                 run: Callable[[], tuple[int, dict]]) -> JSONResponse:
-    """Contract §7: same key + same body -> stored response; same key + other body -> 409."""
-    key = _check_key(key)
-    store = services(request).idempotency
+    """Contract §7, via the shared ``commands.run_idempotent``."""
     fingerprint = f"{request.method} {request.url.path} {json.dumps(body, sort_keys=True)}"
-    stored = store.get(account_id, key)
-    if stored is not None:
-        if stored.fingerprint != fingerprint:
-            raise GameError("IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used with a different request.")
-        return JSONResponse(stored.body, stored.status, headers={"Idempotent-Replayed": "true"})
-    try:
-        status, response = run()
-    except GameError as err:
-        status, response = err.status, err.body()
-    store.put(account_id, key, StoredResponse(fingerprint, status, response))
-    return JSONResponse(response, status)
+    status, response, replayed = commands.run_idempotent(
+        services(request).idempotency, account_id, key, fingerprint, run)
+    return JSONResponse(response, status, headers={"Idempotent-Replayed": "true"} if replayed else None)
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -95,17 +74,7 @@ async def place_bet(request: Request, round_id: str, body: PlaceBetRequest,
     engine = services(request).engine
 
     def run() -> tuple[int, dict]:
-        try:
-            wager = parse_credits(body.wager)
-            auto = None if body.autoCashOut is None else multiplier_from_float(body.autoCashOut)
-        except ValueError as err:
-            raise GameError("INVALID_REQUEST", str(err)) from None
-        bet, balance = engine.place_bet(account_id, round_id, wager, auto)
-        return 201, wire(BetResponse(
-            betId=bet.bet_id, roundId=bet.round_id, wager=format_credits(bet.wager),
-            autoCashOut=None if bet.auto_cash_out is None else multiplier_to_float(bet.auto_cash_out),
-            status="active", balance=format_credits(balance),
-        ))
+        return commands.place_bet(engine, account_id, round_id, body)
 
     return _idempotent(request, account_id, idempotency_key, wire(body), run)
 
@@ -117,11 +86,7 @@ async def cash_out(request: Request, round_id: str, body: CashOutRequest | None 
     engine = services(request).engine
 
     def run() -> tuple[int, dict]:
-        bet, balance = engine.cash_out(account_id, round_id)
-        return 200, wire(CashOutResponse(
-            betId=bet.bet_id, status="cashed-out", multiplier=multiplier_to_float(bet.multiplier),
-            payout=format_credits(bet.payout), profit=format_credits(bet.profit), balance=format_credits(balance),
-        ))
+        return commands.cash_out(engine, account_id, round_id)
 
     return _idempotent(request, account_id, idempotency_key, {}, run)
 
