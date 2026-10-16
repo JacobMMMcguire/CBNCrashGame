@@ -132,6 +132,7 @@ class RoundEngine:
         clock: Clock,
         sink: EventSink | None = None,
         rounds: RoundStore | None = None,
+        round_prefix: str = "",
     ) -> None:
         self.config = config
         self.ledger = ledger
@@ -145,6 +146,9 @@ class RoundEngine:
         )
         # How many distinct players are connected; main.py points this at the broadcaster.
         self.online_count: Callable[[], int] = lambda: 0
+        # Rooms pass "K7QX-" so round ids are unique across rooms (K7QX-r_1). Each room
+        # has its own in-memory RoundStore, so room round numbers start at 1.
+        self.round_prefix = round_prefix
         self.round = self._new_round()
 
     # ---------- State machine ----------
@@ -160,7 +164,7 @@ class RoundEngine:
         self.round.state = to
 
     def _new_round(self) -> Round:
-        round_id = f"r_{self.rounds.next_round_number()}"
+        round_id = f"{self.round_prefix}r_{self.rounds.next_round_number()}"
         secret = self.provider.new_round(round_id)
         return Round(round_id, secret, self.fairness.commit(secret.server_seed))
 

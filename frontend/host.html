@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en-CA" data-theme="mission">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascent · Host</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app/css/tokens.css">
+<link rel="stylesheet" href="/app/css/room.css">
+<!-- QR encoder (MIT, vendored): defines window.qrcode before the module runs -->
+<script src="/app/vendor/qrcode-generator/qrcode.js"></script>
+<script type="module" src="/app/js/room/host.js"></script>
+</head>
+<body class="room room--host">
+<div class="playmoney" data-i18n="room.playMoney">PLAY MONEY · credits have no cash value</div>
+<header class="room-top">
+  <span class="brand-name">Ascent</span>
+  <span class="label" data-i18n="room.host.title">Host screen</span>
+  <div class="lang" id="langSwitch" role="group" aria-label="Language" data-i18n-attr="aria-label:room.lang">
+    <button type="button" data-lang="en" lang="en">EN</button>
+    <button type="button" data-lang="fr" lang="fr">FR</button>
+  </div>
+  <span class="conn" id="conn" data-status="connecting" role="status" aria-live="polite"></span>
+</header>
+
+<main>
+  <!-- Before a room exists -->
+  <section class="intro" id="intro">
+    <h1 data-i18n="room.host.introTitle">Host a multiplayer launch</h1>
+    <p class="hint" data-i18n="room.host.introBody">Put this screen where everyone can see it. Players join from their phones.</p>
+    <button class="btn btn--primary btn--xl" id="hostBtn" type="button" data-i18n="room.host.hostButton">Host a game</button>
+    <p class="error" id="introError" role="alert" hidden></p>
+  </section>
+
+  <!-- After the room is created -->
+  <div class="host-grid" id="hostGrid" hidden>
+    <section class="panel join-panel" aria-labelledby="joinTitle">
+      <h2 class="label" id="joinTitle" data-i18n="room.host.joinTitle">Scan to join</h2>
+      <div class="qr" id="qr"></div>
+      <p class="room-code" id="roomCode" aria-describedby="codeHint"></p>
+      <p class="hint" id="codeHint" data-i18n="room.host.codeHint">Or open the link below and type the code</p>
+      <p class="join-url" id="joinUrl"></p>
+      <p class="warn" id="localWarn" role="note" hidden data-i18n="room.host.localWarn">This link uses localhost, so phones cannot open it. Set PUBLIC_BASE_URL in .env to this laptop's LAN IP and restart (see LOCAL_SETUP.md).</p>
+    </section>
+
+    <section class="panel stage" id="stage" data-state="idle" aria-live="off">
+      <p class="stage__mult" data-multiplier>1.00×</p>
+      <p class="stage__phase" data-phase role="status" aria-live="polite"></p>
+      <ol class="crash-history" data-history aria-label="Recent crash points" data-i18n-attr="aria-label:room.host.history"></ol>
+      <div class="host-controls">
+        <button class="btn btn--primary btn--lg" id="startBtn" type="button" data-i18n="room.host.start">Start the game</button>
+        <button class="btn btn--lg" id="lockBtn" type="button" aria-pressed="false" data-i18n="room.host.lock">Lock room</button>
+      </div>
+      <p class="error" id="hostError" role="alert" hidden></p>
+    </section>
+
+    <section class="panel lobby" aria-labelledby="lobbyTitle">
+      <h2 class="label" id="lobbyTitle"><span data-i18n="room.host.lobby">Players</span> <span id="playerCount"></span></h2>
+      <p class="hint" id="lobbyEmpty" data-i18n="room.host.lobbyEmpty">Waiting for players to scan the code…</p>
+      <ul class="lobby-list" id="lobbyList"></ul>
+    </section>
+
+    <section class="panel lb lb--big" data-lb aria-labelledby="lbTitle">
+      <h2 class="label" id="lbTitle" data-i18n="room.lb.title">Leaderboard</h2>
+      <p class="hint" data-i18n="room.lb.basis">Ranked by balance (play credits). Updated after each round.</p>
+      <p class="lb-caption" data-lb-caption></p>
+      <ol class="lb-list" id="lbList"></ol>
+      <p class="hint lb-empty" data-i18n="room.lb.empty">Players appear here as they join.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>

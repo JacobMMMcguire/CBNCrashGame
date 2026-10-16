@@ -24,7 +24,7 @@ The dev scripts create `.venv`, install `requirements.txt`, run `check_env.py`, 
 
 Mock mode also works from any static server started at the repository root. For example, `python -m http.server 5500` serves it at `http://127.0.0.1:5500/frontend/index.html?mock=1`. The page uses ES modules, so it cannot be opened from `file://`.
 
-Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`, `DATABASE_URL` (PostgreSQL storage; in memory when unset) and `TEST_DATABASE_URL` (throwaway database for `test_postgres.py`). The server reads them from the environment; it does not load `.env` by itself.
+Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`, `DATABASE_URL` (PostgreSQL storage; in memory when unset), `TEST_DATABASE_URL` (throwaway database for `test_postgres.py`), plus the multiplayer settings `PUBLIC_BASE_URL`, `STORAGE_BACKEND`, `SQLITE_PATH`, `SEAT_HOLD_SECONDS` and `MAX_PLAYERS_PER_ROOM`. `python -m app` loads `.env` at startup (a small built-in parser in `settings.py`); variables already set in the shell win.
 
 `check_env.py` imports every dependency. If Windows Application Control (WDAC or AppLocker) blocks a compiled file, such as pydantic-core's `.pyd`, it prints a plain `[BLOCKED]` message instead of a traceback. That block is a machine policy: ask the administrator to allow the files. Do not work around it.
 
@@ -48,6 +48,13 @@ backend/app/
   realtime.py     WebSocket broadcaster, per-connection seq (§9)
   main.py         create_app(): wires everything, CORS, serves /app and /contract;
                   create_app_from_env(): picks PostgreSQL or memory from DATABASE_URL
+  commands.py     place_bet / cash_out / idempotency, shared by HTTP and the room WebSocket
+  settings.py     .env loader + PUBLIC_BASE_URL, STORAGE_BACKEND, seat hold (multiplayer)
+  storage.py      Storage interface: SQLite, in-memory, Supabase placeholder (multiplayer)
+  recording_ledger.py  ledger wrapper that logs every bet / cash out / loss to storage
+  rooms.py        RoomRegistry + Room: one engine per room, tokens, seats, lobby, leaderboard
+  rooms_api.py    /api/v1/rooms routes, room WebSocket, /host and /join pages
+  leaderboard.py  ranking by balance, ties share a rank
   __main__.py     `python -m app`: validates config, then starts uvicorn
 backend/tests/    pytest suite (config, engine, API, secrecy, WebSocket, contract examples)
 config/game.json  every tunable value + contractVersion + server.corsAllowOrigins
@@ -70,6 +77,8 @@ frontend/
   assets/sfx/     Kenney CC0 sound effects (MP3) and their licence files
   js/scene/       canvas scene: scene.js (flight, smoke, stars, explosion), art.js (vector art), milestones.js (planets per 10x)
   js/components/  stage (scene + readout), data (read data), controls, menu (rules, odds, verify, reality check)
+  host.html, join.html, css/room.css, js/room/   multiplayer host screen and phone page
+  vendor/qrcode-generator/                       QR encoder (MIT), vendored
   locales/        en.json, fr.json
 scripts/          dev.ps1, dev.sh, check_env.py, export_schemas.py
 ```
@@ -133,6 +142,7 @@ None of these are in GAME_CONTRACT.md yet. The skeleton implements them, and the
 13. **`POST /api/v1/dev/skip`** (testing only) exists only when the server starts with `ASCENT_DEV_CHEATS=1`. In flight it moves the launch time back so the multiplier rises by 5.00×; the crash point and seed are unchanged.
 14. **A failed round refunds** every active bet as a cash out at 1.00× (`engine._abandon_round`), so players get their wager back through the usual `round.cashout` and `balance.updated` events.
 15. **Multiplayer presence.** `GET /api/v1/account` also returns `playerId` (a public hash; account ids stay private) and `name` (the chosen pilot name or a derived callsign). `POST /api/v1/account/name` `{ "name" }` sets it (2-16 characters, else `422 INVALID_REQUEST`). A new broadcast event `round.players` carries `{ players: [{ playerId, name, wager, status, multiplier?, payout? }], online }` whenever a bet, cash out, crash, rename, new round or connection changes it; auto-eject targets are never included. `GET /api/v1/players` returns the same roster for resync.
+16. **Multiplayer rooms** (branch `multiplayer-lobby`, described in [HOW_IT_WORKS.md](HOW_IT_WORKS.md)): room routes under `/api/v1/rooms`, a room WebSocket, the error codes `ROOM_NOT_FOUND`, `ROOM_LOCKED`, `ROOM_FULL`, `NAME_TAKEN` and `FORBIDDEN`, and `RoundId` widened to `^([A-Z0-9]{4}-)?r_\d+$` so room rounds carry their code (`K7QX-r_1`). Single-player ids are unchanged.
 
 ## Open issues
 

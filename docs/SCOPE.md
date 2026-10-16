@@ -20,6 +20,7 @@ The brief says judges prefer one polished game over a pile of unfinished feature
 5. Accessibility: reduced motion, keyboard play and screen-reader announcements.
 6. Configurable betting options: limits and quick-bet chips.
 7. Analytics panel: session RTP, biggest win and longest streak.
+8. Multiplayer rooms: a host screen, phones that join by QR code, and a leaderboard ranked by balance (play credits). Built on the `multiplayer-lobby` branch; see [HOW_IT_WORKS.md](HOW_IT_WORKS.md) and [LOCAL_SETUP.md](../LOCAL_SETUP.md).
 
 ## How the demo proves each rubric category
 
@@ -33,7 +34,7 @@ The brief says judges prefer one polished game over a pile of unfinished feature
 ## Not building
 
 - Real money, deposits, payments, or anything that looks like them.
-- Multiplayer, chat, leaderboards, or social features.
+- Chat, friends lists or other social features beyond the room lobby and the balance leaderboard.
 - Registration with personal data. Accounts are play accounts only.
 - Bonus rounds (cut to protect polish).
 - Native mobile apps. The responsive web app covers phones.

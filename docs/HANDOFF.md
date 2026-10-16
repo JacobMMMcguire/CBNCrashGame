@@ -12,6 +12,7 @@ You are joining **Ascent**, our crash game for the Canadian Bank Note challenge 
 6. Open [frontend/mock_frontend.html](../frontend/mock_frontend.html) by double-clicking it and click through all four states. **Required for frontend work.**
 7. [DESIGN.md](../DESIGN.md) and [PRODUCT.md](../PRODUCT.md): read these when you build UI or write copy.
 8. [docs/PROMPTS.md](PROMPTS.md): log every AI-assisted prompt here.
+9. [docs/HOW_IT_WORKS.md](HOW_IT_WORKS.md) and [LOCAL_SETUP.md](../LOCAL_SETUP.md): multiplayer rooms, the leaderboard and QR join, and how to run them with phones on the same Wi-Fi.
 
 ## 2. Already decided
 
@@ -22,7 +23,8 @@ You are joining **Ascent**, our crash game for the Canadian Bank Note challenge 
 - **Safety:** idempotency keys on bet and cash out; balances stored as integer minor units.
 - **Config:** every tunable value lives in one config file. UI strings live in an EN/FR catalog.
 - **Look:** a flat-vector night launch (one dark look), described in DESIGN.md. The early "Day" theme and `mock_frontend.html` wireframe are superseded.
-- **Out of scope:** multiplayer, real money, bonus rounds, native apps.
+- **Out of scope:** real money, bonus rounds, native apps.
+- **Multiplayer rooms:** a host screen, phones joining by QR code and a balance leaderboard (see [HOW_IT_WORKS.md](HOW_IT_WORKS.md) and [LOCAL_SETUP.md](../LOCAL_SETUP.md)). They sit beside the shared single-player launch, where everyone online already sees each other's pilot names and bets. The server must run as **one process**: rooms, round loops and sockets live in its memory.
 
 ## 3. Still TBD
 

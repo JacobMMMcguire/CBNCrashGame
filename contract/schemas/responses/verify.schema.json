@@ -4,7 +4,7 @@
   "additionalProperties": false,
   "properties": {
     "roundId": {
-      "pattern": "^r_\\d+$",
+      "pattern": "^([A-Z0-9]{4}-)?r_\\d+$",
       "title": "Roundid",
       "type": "string"
     },

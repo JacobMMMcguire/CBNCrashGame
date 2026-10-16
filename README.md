@@ -69,6 +69,17 @@ Everyone connected to the same server flies the same rocket and sees each other:
 
 To play together on the same Wi-Fi, start the server with `ASCENT_HOST=0.0.0.0` and have friends open `http://<your PC's IP>:8001/app/`. To try it alone on one computer, open a second tab with `?player=2`.
 
+### Multiplayer rooms (host screen + QR join)
+
+For a group in one place, a host can run a separate room on a big screen:
+
+- **Host:** open `/host` and click **Host a game**. The screen shows a QR code, a 4-character room code and the join link, then the lobby, the round and a large leaderboard. The host can start, lock the room and remove players.
+- **Players:** scan the QR code (or open `/join` and type the code), pick a name, and bet and cash out with big phone buttons. Each phone keeps a server-issued session token, so reopening the page returns the same seat and balance.
+- **Leaderboard:** ranked by balance in play credits, ties share a rank, updated after each round's payouts, with each player's own row highlighted.
+- Rooms run on the same server rules: the server owns each room's round, clock and balances, and logs every bet and cash out for the AML export.
+
+How it works: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md). Running it with phones on the same Wi-Fi (Windows): [LOCAL_SETUP.md](LOCAL_SETUP.md).
+
 ## Mission control
 
 **Mission control** (the ☰ button) holds the rules, the odds table, the provably fair verifier and a **Transparency** section that explains each term in the brief's glossary: RNG, RTP, auto cash out and server idempotence.
@@ -82,9 +93,9 @@ Ascent uses play credits only. It has no deposits or payments. It includes respo
 | Server | Python 3.11+, FastAPI, uvicorn |
 | Real-time | WebSocket (`/api/v1/ws`) with reconnect and resync |
 | Frontend | Plain HTML, CSS and JavaScript ES modules; the launch is drawn on a 2D canvas; sound through Web Audio |
-| Storage | PostgreSQL (Supabase) through psycopg when `DATABASE_URL` is set; in memory otherwise |
+| Storage | PostgreSQL (Supabase) through psycopg when `DATABASE_URL` is set; in memory otherwise. Multiplayer rooms: SQLite by default (`STORAGE_BACKEND`) |
 | Hosting | Render web service (`render.yaml`) |
-| Tests | pytest + httpx (FastAPI TestClient), 80 tests, plus 10 PostgreSQL tests against a throwaway database |
+| Tests | pytest + httpx (FastAPI TestClient), TBD_PYTEST tests, plus 10 PostgreSQL tests against a throwaway database; Playwright browser tests for multiplayer rooms in `e2e/` (TBD_E2E tests) |
 
 ## Project structure
 
@@ -119,10 +130,14 @@ CBNCrashGame/
 | [docs/AML_HANDOFF.md](docs/AML_HANDOFF.md) | For the AML export work: what the game stores today and what is missing |
 | [docs/HANDOFF.md](docs/HANDOFF.md) | Original team handoff and demo checklist |
 | [PRODUCT.md](PRODUCT.md) | Users, purpose, positioning, principles, terminology |
+| [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) | Multiplayer rooms, leaderboard and QR join, as built |
+| [LOCAL_SETUP.md](LOCAL_SETUP.md) | Windows commands to run multiplayer rooms and join from phones on the same Wi-Fi; Playwright tests |
 
 ## Credits
 
 Sound effects: [Kenney](https://www.kenney.nl) "Sci-Fi Sounds" and "Interface Sounds" (CC0), converted to MP3 in `frontend/assets/sfx/`.
+
+**Multiplayer:** open <http://127.0.0.1:8001/host>, click **Host a game**, and scan the QR code with phones on the same Wi-Fi. Phones need `ASCENT_HOST=0.0.0.0` and `PUBLIC_BASE_URL=http://<laptop LAN IP>:8001` in `.env`; [LOCAL_SETUP.md](LOCAL_SETUP.md) has the exact steps, the firewall prompt and what to do when the Wi-Fi blocks phones.
 
 ## Team
 

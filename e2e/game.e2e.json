@@ -1,0 +1,29 @@
+{
+  "contractVersion": "0.1.0",
+  "minBet": 1.0,
+  "maxBet": 1000.0,
+  "startingBalance": 1000.0,
+  "maxMultiplier": 100.0,
+  "growthRate": 0.3,
+  "targetRtp": 0.97,
+  "bettingWindowMs": 4000,
+  "settleDelayMs": 1500,
+  "tickIntervalMs": 100,
+  "multiplierDecimals": 2,
+  "autoCashOutMin": 1.01,
+  "defaultLanguage": "en",
+  "supportedLanguages": [
+    "en",
+    "fr"
+  ],
+  "quickBetChips": [
+    10,
+    50,
+    100,
+    250
+  ],
+  "realityCheckMinutes": 30,
+  "server": {
+    "corsAllowOrigins": []
+  }
+}

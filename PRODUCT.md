@@ -57,14 +57,16 @@ Most crash games are a line on a chart with neon trim. Ascent changes three thin
 7. Multiplayer presence: pilot names, a live roster of the current launch, an online count, a feed of other players' cash outs.
 8. Sound effects (CC0) with a mute button.
 9. A reality-check reminder and an odds table.
+10. Multiplayer rooms: a host screen, phones that join by QR code, and a leaderboard ranked by balance (play credits). See docs/HOW_IT_WORKS.md.
 
-**Not built:** bonus rounds (cut to protect polish), chat, leaderboards.
+**Not built:** bonus rounds (cut to protect polish), chat.
 
 **Hard constraints**
 - The server owns the multiplier clock, the crash point and the balance. The client only displays them.
 - The crash point and seed never reach a client before the crash.
 - Bet and cash-out requests carry idempotency keys.
 - Other players see a pilot name, wager and result, never an account id or an auto-eject target.
+- Multiplayer rooms follow the same rules: the server owns each room's round, clock and balances, and phones only send actions. See docs/HOW_IT_WORKS.md.
 
 **Terminology** (used consistently in code, copy and docs)
 
@@ -110,6 +112,7 @@ Most crash games are a line on a chart with neon trim. Ascent changes three thin
 - Copied space-agency branding.
 - Anything that hints at the crash point before it happens (no pre-crash shake or warning).
 - Mechanics that encourage chasing losses (no "you almost won!" and no streak pressure).
+- Chat or social features beyond the room lobby and the balance leaderboard. The leaderboard ranks play credits only and never celebrates losses.
 
 ## Success Criteria (mapped to the judging rubric)
 

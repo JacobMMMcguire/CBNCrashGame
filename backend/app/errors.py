@@ -7,7 +7,8 @@ Every error response has the shape ``{"error": {"code": ..., "message": ...}}``.
 from __future__ import annotations
 
 # code -> HTTP status. The first eight come from contract §8.7. The rest are
-# additions listed under "Contract changes proposed" in docs/SKELETON.md.
+# additions listed under "Contract changes proposed" in docs/SKELETON.md; the
+# room codes are described in docs/HOW_IT_WORKS.md.
 ERROR_STATUS: dict[str, int] = {
     "BET_WINDOW_CLOSED": 409,
     "BET_OUT_OF_RANGE": 422,
@@ -23,6 +24,12 @@ ERROR_STATUS: dict[str, int] = {
     "ROUND_NOT_FOUND": 404,
     "ROUND_NOT_FINISHED": 409,
     "REFILL_NOT_NEEDED": 409,
+    # Multiplayer rooms:
+    "ROOM_NOT_FOUND": 404,
+    "ROOM_LOCKED": 409,
+    "ROOM_FULL": 409,
+    "NAME_TAKEN": 409,
+    "FORBIDDEN": 403,
 }
 
 

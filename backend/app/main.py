@@ -19,15 +19,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import api, realtime
+from . import api, realtime, rooms_api
 from .clock import Clock, SystemClock
 from .config import REPO_ROOT, GameConfig, load_config
 from .engine import RoundEngine, RoundStore
 from .errors import GameError
-from .fairness import FairnessScheme, Sha256Fairness
+from .fairness import FairnessScheme, PlaceholderFairness, Sha256Fairness
 from .idempotency import IdempotencyStore, InMemoryIdempotencyStore
 from .ledger import InMemoryLedger, Ledger
-from .rng import CrashPointProvider, ProvablyFairCrashPointProvider
+from .rng import CrashPointProvider, FixedSequenceCrashPointProvider, ProvablyFairCrashPointProvider
+from .rooms import RoomRegistry
+from .settings import Settings, load_settings
+from .storage import Storage, create_storage
 
 log = logging.getLogger("ascent")
 
@@ -48,6 +51,9 @@ class Services:
     ledger: Ledger
     idempotency: IdempotencyStore
     broadcaster: realtime.Broadcaster
+    settings: Settings
+    storage: Storage
+    rooms: RoomRegistry
 
 
 def create_app(
@@ -62,13 +68,19 @@ def create_app(
     autostart: bool = True,
     dev_cheats: bool | None = None,
     on_shutdown: Callable[[], None] | None = None,
+    settings: Settings | None = None,
+    storage: Storage | None = None,
+    room_provider_factory: Callable[[], CrashPointProvider] | None = None,
 ) -> FastAPI:
     """Build the app. Swap a stub for a real implementation by passing it here.
 
     ``autostart=False`` leaves the round loop stopped so tests can drive the
-    engine by hand.
+    engine by hand. It also keeps room round loops from starting on the host's
+    Start, and turns off the seat sweeper.
     """
     config = config or load_config()
+    settings = settings or load_settings()
+    storage = storage or create_storage(settings)
     ledger = ledger or InMemoryLedger(config.starting_balance_units)
     idempotency = idempotency or InMemoryIdempotencyStore()
     broadcaster = realtime.Broadcaster()
@@ -84,18 +96,29 @@ def create_app(
     )
     engine.online_count = broadcaster.online_count
     broadcaster.on_presence = engine.publish_roster
-    services = Services(config, engine, ledger, idempotency, broadcaster)
+    rooms = RoomRegistry(
+        config=config, settings=settings, storage=storage, clock=engine.clock,
+        # SKELETON ONLY: rooms use the fixed, repeating crash list with the matching
+        # placeholder fairness. Single-player uses the provably fair provider above.
+        provider_factory=room_provider_factory or (
+            lambda: FixedSequenceCrashPointProvider(max_multiplier=config.max_multiplier_hundredths)),
+        fairness=PlaceholderFairness(), autorun=autostart,
+    )
+    services = Services(config, engine, ledger, idempotency, broadcaster, settings, storage, rooms)
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
-        task = asyncio.create_task(engine.run_forever()) if autostart else None
+        tasks = ([asyncio.create_task(engine.run_forever()), asyncio.create_task(rooms.run_sweeper())]
+                 if autostart else [])
         try:
             yield
         finally:
-            if task is not None:
+            for task in tasks:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
+            await rooms.shutdown()
+            storage.close()
             if on_shutdown is not None:
                 on_shutdown()
 
@@ -127,6 +150,8 @@ def create_app(
         log.warning("Dev cheats are ON (ASCENT_DEV_CHEATS=1). Never enable this outside local testing.")
         app.include_router(api.dev_router)
     app.include_router(realtime.router)
+    app.include_router(rooms_api.router)
+    app.include_router(rooms_api.pages)
 
     @app.get("/", include_in_schema=False)
     @app.get("/app", include_in_schema=False)
