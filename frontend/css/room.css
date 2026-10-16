@@ -106,7 +106,7 @@ button { cursor: pointer; }
   grid-template-columns: 1fr;
 }
 @media (min-width: 1000px) {
-  .host-grid { grid-template-columns: 340px minmax(0, 1fr) 360px; align-items: start; }
+  .host-grid { grid-template-columns: 340px minmax(0, 1fr) 400px; align-items: start; }
 }
 .join-panel { display: grid; gap: var(--space-3); justify-items: center; text-align: center; }
 .qr { width: 100%; max-width: 280px; aspect-ratio: 1; background: #fff; border-radius: var(--radius-control); padding: 12px; }
@@ -119,12 +119,18 @@ button { cursor: pointer; }
 .lobby { display: grid; gap: var(--space-3); }
 .lobby-list { display: grid; gap: var(--space-2); }
 .lobby-item {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-3);
+  /* Name above its status, Remove on the right: long names get the full width. */
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name kick" "status kick";
+  align-items: center; column-gap: var(--space-3); row-gap: 0;
   padding: var(--space-2) var(--space-3); border-radius: var(--radius-control); background: var(--surface-2);
   animation: pop-in var(--dur) var(--ease-out);
 }
-.lobby-item__name { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lobby-item__status { font-size: 0.8125rem; color: var(--win); }
+/* Names are at most 16 characters: on the host screen they wrap (at spaces or hyphens first)
+   rather than being cut off. */
+.lobby-item__name { font-weight: 650; overflow-wrap: break-word; min-width: 0; }
+.lobby-item__name { grid-area: name; }
+.lobby-item__status { grid-area: status; font-size: 0.8125rem; color: var(--win); }
+.lobby-item .btn { grid-area: kick; }
 .lobby-item[data-connected="false"] .lobby-item__status { color: var(--ink-3); }
 @keyframes pop-in { from { opacity: 0; transform: translateY(6px); } }
 
@@ -142,7 +148,10 @@ button { cursor: pointer; }
 .lb-row__name { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-row__bal { font-family: var(--font-data); }
 .lb-row[data-me="true"] { background: var(--accent-wash); outline: 2px solid var(--accent-line); outline-offset: -2px; }
-.lb--big .lb-row { padding: var(--space-3) var(--space-4); font-size: 1.375rem; }
+/* Big-screen size on laptops and TVs; a narrow host window gets phone-sized rows so names fit. */
+.lb--big .lb-row { padding: var(--space-2) var(--space-3); font-size: 1rem; }
+@media (min-width: 1000px) { .lb--big .lb-row { padding: var(--space-3) var(--space-4); font-size: 1.375rem; } }
+.lb--big .lb-row__name { white-space: normal; overflow-wrap: break-word; }
 .lb--big .lb-row:first-child .lb-row__rank { color: var(--accent); }
 .lb--compact { padding: var(--space-4); }
 @media (min-width: 1000px) {
