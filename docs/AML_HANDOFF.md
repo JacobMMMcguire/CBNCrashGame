@@ -10,7 +10,7 @@ These notes are for the teammates building the staff-only dataset export for the
 | Identity | No sign-up and no staff. Each browser invents a guest token; the server derives an account id from it: `acc_` + the first 12 hex digits of SHA-256(token) | `backend/app/auth.py` |
 | Roles | None. Every valid token is a player | `backend/app/auth.py`, `api.current_account` |
 | Public identity | Other players see a `playerId` (hash of the account id) and a pilot name the player can set; neither is personal data | `backend/app/players.py` |
-| Storage | In memory only. A restart wipes accounts, bets and history | `backend/app/ledger.py` (`InMemoryLedger`), `engine._finished` |
+| Storage | PostgreSQL (Supabase) when `DATABASE_URL` is set: tables `accounts`, `bets`, `rounds`, `idempotency_keys` (see `db/schema.sql`). In memory otherwise | `backend/app/postgres.py`, `db/schema.sql` |
 | History kept | The last 100 finished rounds (`HISTORY_KEEP`) | `backend/app/engine.py` |
 | Money | Integer hundredths of a play credit (`10000` = 100.00 credits). The API sends strings with two decimals, such as `"100.00"` | `backend/app/money.py` |
 | Multipliers | Integer hundredths (`247` = 2.47×) | `backend/app/money.py` |
@@ -37,15 +37,15 @@ These notes are for the teammates building the staff-only dataset export for the
 
 ## Gaps an AML export will hit
 
-1. **No timestamps on bets.** Nothing records when a bet was placed or cashed out. The engine has the clock at both moments (`engine.place_bet`, `engine._apply_cash_out`), so they can be recorded there.
-2. **Ids are not unique over time.** `b_<n>` and `r_<n>` restart at 1 after a restart.
+1. ~~No timestamps on bets.~~ With PostgreSQL storage, `bets.placed_at` and `bets.cashed_out_at` record both moments (database time, UTC). The in-memory `Bet` still has no timestamps.
+2. ~~Ids are not unique over time.~~ With PostgreSQL storage, bet and round numbers come from database sequences and are never reused. In memory they still restart at 1.
 3. **No player identity**, and no deposits or withdrawals, because the game uses play credits only.
 4. **No staff accounts or roles**, so a server-side role check has nothing to check against yet.
-5. **No permanent storage**, so there is nothing to export after a restart.
+5. ~~No permanent storage.~~ With `DATABASE_URL` set, every account, bet, finished round (with seed and commitment) and idempotency key is kept in PostgreSQL. A refund of a bet left riding by a restart is stored as a cash out at 1.00×.
 
 ## Where to plug in
 
-- **Storage:** `Ledger` in `backend/app/ledger.py` is an interface. A persistent implementation (for example SQLite, which ships with Python) can replace `InMemoryLedger` in one place: `create_app()` in `backend/app/main.py`.
+- **Storage:** the export can read the PostgreSQL tables directly (`bets` joined to `rounds` on `round_id`). Read with the server's database role: row-level security blocks Supabase's public API keys.
 - **Events:** every bet, cash out, crash and balance change already passes through `RoundEngine` (`place_bet`, `_apply_cash_out`, `crash`, `refill`), which is the natural place to record timestamps or an audit trail.
 - **Routes:** add staff routes on their own `APIRouter` and include it in `create_app()`, the way `api.dev_router` is included only when enabled.
 - **Tests:** `backend/tests/conftest.py` has fixtures for a manual clock, an engine and a test client.
@@ -53,5 +53,4 @@ These notes are for the teammates building the staff-only dataset export for the
 ## Decisions still open (for the AML owner)
 
 - The contract file and sample fixture: add them to this repo.
-- Storage: a local database such as SQLite, or something else.
 - Staff sign-in: for example a staff key in an environment variable, or real staff accounts.

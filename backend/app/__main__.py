@@ -29,7 +29,7 @@ def main() -> int:
     import uvicorn
 
     print(f"Ascent skeleton: game at http://{args.host}:{args.port}/app/  (mock mode: /app/?mock=1)")
-    uvicorn.run("app.main:create_app", factory=True, host=args.host, port=args.port, reload=args.reload)
+    uvicorn.run("app.main:create_app_from_env", factory=True, host=args.host, port=args.port, reload=args.reload)
     return 0
 
 

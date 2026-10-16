@@ -24,7 +24,7 @@ The dev scripts create `.venv`, install `requirements.txt`, run `check_env.py`, 
 
 Mock mode also works from any static server started at the repository root. For example, `python -m http.server 5500` serves it at `http://127.0.0.1:5500/frontend/index.html?mock=1`. The page uses ES modules, so it cannot be opened from `file://`.
 
-Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`. The server reads them from the environment; it does not load `.env` by itself.
+Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`, `DATABASE_URL` (PostgreSQL storage; in memory when unset) and `TEST_DATABASE_URL` (throwaway database for `test_postgres.py`). The server reads them from the environment; it does not load `.env` by itself.
 
 `check_env.py` imports every dependency. If Windows Application Control (WDAC or AppLocker) blocks a compiled file, such as pydantic-core's `.pyd`, it prints a plain `[BLOCKED]` message instead of a traceback. That block is a machine policy: ask the administrator to allow the files. Do not work around it.
 
@@ -37,15 +37,17 @@ backend/app/
   clock.py        Clock interface, SystemClock, ManualClock for tests
   rng.py          CrashPointProvider interface + FixedSequenceCrashPointProvider   SKELETON ONLY
   fairness.py     FairnessScheme interface + PlaceholderFairness                   SKELETON ONLY
-  ledger.py       Ledger interface + InMemoryLedger                                SKELETON ONLY
-  idempotency.py  IdempotencyStore interface + InMemoryIdempotencyStore            SKELETON ONLY
+  ledger.py       Ledger interface + InMemoryLedger (local development and tests)
+  idempotency.py  IdempotencyStore interface + InMemoryIdempotencyStore
+  postgres.py     PostgresLedger, PostgresIdempotencyStore, PostgresRoundStore (used when DATABASE_URL is set)
   auth.py         guest bearer token -> play account id                            SKELETON ONLY
   engine.py       RoundEngine: state machine + server-clock loop (§2, §5)
   schemas.py      wire models for every request, response and event (§8, §9)
   errors.py       error codes and HTTP statuses (§8.7)
   api.py          HTTP routes under /api/v1 (§8), idempotency (§7)
   realtime.py     WebSocket broadcaster, per-connection seq (§9)
-  main.py         create_app(): wires everything, CORS, serves /app and /contract
+  main.py         create_app(): wires everything, CORS, serves /app and /contract;
+                  create_app_from_env(): picks PostgreSQL or memory from DATABASE_URL
   __main__.py     `python -m app`: validates config, then starts uvicorn
 backend/tests/    pytest suite (config, engine, API, secrecy, WebSocket, contract examples)
 config/game.json  every tunable value + contractVersion + server.corsAllowOrigins
@@ -83,7 +85,7 @@ scripts/          dev.ps1, dev.sh, check_env.py, export_schemas.py
 | WebSocket events | Real envelopes and private routing; `seq` is per connection. |
 | Crash points (`ProvablyFairCrashPointProvider`) | Real (contract §4.1, §4.2). A 32-byte `secrets` seed per round; crash point from HMAC-SHA256 in exact integer maths. `test_fairness.py` checks the formula and simulates 200,000 rounds against the target RTP. `FixedSequenceCrashPointProvider` remains for tests only. |
 | Commitment and verify (`Sha256Fairness`) | Real (contract §4.3). `commitment = SHA-256(seed)`; `verify` re-checks the hash and the crash point. The browser repeats the check independently (`frontend/js/fairness.js`). `PlaceholderFairness` remains for tests only. |
-| **Ledger** (`InMemoryLedger`, `InMemoryIdempotencyStore`) | **SKELETON ONLY.** Process memory with one lock; everything is lost on restart; idempotency entries never expire; no audit trail. |
+| Ledger, idempotency and round history (`postgres.py`) | Real when `DATABASE_URL` is set. Reads come from memory (the engine reads the ledger on every tick); every money change is one conditional PostgreSQL transaction, committed before memory changes. Bet and round numbers come from database sequences, so ids are never reused. Bets riding when the server stopped are refunded at 1.00× on start. Idempotency keys are kept for a day. Finished rounds are saved at settle (`RoundStore` in `engine.py`) and the last 100 are reloaded, so history and verify survive restarts. Schema: `db/schema.sql`. Without `DATABASE_URL`, `InMemoryLedger` and `InMemoryIdempotencyStore` keep everything in process memory. |
 | **Identity** (`auth.py`) | **SKELETON ONLY.** Any well-formed guest token is accepted; the browser makes its own and keeps it in localStorage. |
 | Frontend | Game screen: canvas launch scene (`js/scene/`), read-data panel, controls with queued next-launch bets, session stats, in-browser verify, odds table, reality check, EN/FR. One screen with no page scroll on phone and desktop. |
 | Mock mode | MOCK ONLY: fixed crash list (includes 24.60× and 44.70× to show planet flybys) and the sample seed from the examples, so verify reports a mismatch there. |
@@ -134,7 +136,8 @@ None of these are in GAME_CONTRACT.md yet. The skeleton implements them, and the
 
 ## Open issues
 
-- Everything is in memory: a server restart resets balances, history and idempotency keys. A persistent `Ledger` is the next backend step (see docs/AML_HANDOFF.md).
+- The server must run as one process: the round loop and live connections are in memory. Scaling out needs shared round state first.
+- Database calls are synchronous inside the event loop (one round trip per bet, cash out and settle). Keep the database in the same region as the server.
 - Identity is a client-made guest token; there are no staff accounts or roles.
 - The client resync and live events can race; a stale resync could briefly overwrite newer state.
 - The Python launcher (`py`) is used on Windows because `python` on PATH may be the Microsoft Store stub.

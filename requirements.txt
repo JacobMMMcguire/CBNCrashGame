@@ -3,6 +3,9 @@ fastapi==0.115.12
 pydantic==2.12.5
 uvicorn==0.34.2
 websockets==15.0.1
+# PostgreSQL (Supabase) storage, used only when DATABASE_URL is set
+psycopg[binary]==3.2.9
+psycopg-pool==3.2.6
 
 # Tests (httpx is also what FastAPI's TestClient uses)
 httpx==0.28.1

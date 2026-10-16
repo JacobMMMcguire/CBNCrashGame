@@ -63,6 +63,39 @@ class NullSink:
         pass
 
 
+class RoundStore(Protocol):
+    """Numbers new rounds and keeps finished ones (history and verify).
+
+    A persistent store must hand out numbers that are never reused, even after a
+    restart, and may only receive a round after it has crashed (its seed is public
+    by then).
+    """
+
+    def next_round_number(self) -> int: ...
+
+    def recent_rounds(self, limit: int) -> list[Round]:
+        """Finished rounds, oldest first."""
+
+    def save_round(self, r: Round) -> None: ...
+
+
+class InMemoryRoundStore:
+    """Counts from 1 and keeps nothing; the engine's own history is the only copy."""
+
+    def __init__(self) -> None:
+        self._counter = 0
+
+    def next_round_number(self) -> int:
+        self._counter += 1
+        return self._counter
+
+    def recent_rounds(self, limit: int) -> list[Round]:
+        return []
+
+    def save_round(self, r: Round) -> None:
+        pass
+
+
 @dataclass
 class Round:
     round_id: str
@@ -98,6 +131,7 @@ class RoundEngine:
         fairness: FairnessScheme,
         clock: Clock,
         sink: EventSink | None = None,
+        rounds: RoundStore | None = None,
     ) -> None:
         self.config = config
         self.ledger = ledger
@@ -105,8 +139,10 @@ class RoundEngine:
         self.fairness = fairness
         self.clock = clock
         self.sink: EventSink = sink or NullSink()
-        self._round_counter = 0
-        self._finished: OrderedDict[str, Round] = OrderedDict()
+        self.rounds: RoundStore = rounds or InMemoryRoundStore()
+        self._finished: OrderedDict[str, Round] = OrderedDict(
+            (r.round_id, r) for r in self.rounds.recent_rounds(HISTORY_KEEP)
+        )
         # How many distinct players are connected; main.py points this at the broadcaster.
         self.online_count: Callable[[], int] = lambda: 0
         self.round = self._new_round()
@@ -124,8 +160,7 @@ class RoundEngine:
         self.round.state = to
 
     def _new_round(self) -> Round:
-        self._round_counter += 1
-        round_id = f"r_{self._round_counter}"
+        round_id = f"r_{self.rounds.next_round_number()}"
         secret = self.provider.new_round(round_id)
         return Round(round_id, secret, self.fairness.commit(secret.server_seed))
 
@@ -178,9 +213,7 @@ class RoundEngine:
     def settle(self) -> None:
         r = self.round
         self._transition(SETTLED)
-        self._finished[r.round_id] = r
-        while len(self._finished) > HISTORY_KEEP:
-            self._finished.popitem(last=False)
+        self._keep_finished(r)
         self._emit("round.settled", SettledData())
         self._emit(
             "history.updated",
@@ -234,7 +267,16 @@ class RoundEngine:
                 except Exception:  # keep refunding the others
                     log.exception("%s: refund of %s failed", r.round_id, bet.bet_id)
         r.state = SETTLED
+        self._keep_finished(r)
+
+    def _keep_finished(self, r: Round) -> None:
         self._finished[r.round_id] = r
+        while len(self._finished) > HISTORY_KEEP:
+            self._finished.popitem(last=False)
+        try:
+            self.rounds.save_round(r)
+        except Exception:  # balances are already safe in the ledger; only history after a restart loses this round
+            log.exception("%s: could not save the finished round", r.round_id)
 
     async def _sleep_until(self, at_ms: int) -> None:
         await self.clock.sleep_ms(at_ms - self.clock.now_ms())

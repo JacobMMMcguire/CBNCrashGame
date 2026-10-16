@@ -21,6 +21,23 @@ The script creates `.venv`, installs `requirements.txt`, checks the environment 
 - **Configure:** edit [`config/game.json`](config/game.json) and restart. Invalid values stop the server with a readable message.
 - **Play from a phone on the same Wi-Fi:** set `ASCENT_HOST=0.0.0.0` before starting, then open `http://<your PC's IP>:8001/app/`.
 - **Testing cheat:** with `ASCENT_DEV_CHEATS=1` set, typing `rectangle` during a flight jumps the multiplier ahead by +5.00×. The crash point is untouched, so rounds still verify. Without the variable the cheat does not exist (the endpoint returns 404). Never enable it outside local testing.
+- **Persistent storage:** set `DATABASE_URL` to a PostgreSQL connection string and accounts, bets, finished rounds and idempotency keys survive restarts. Without it everything stays in memory.
+
+## Deploy (Render + Supabase)
+
+[`render.yaml`](render.yaml) describes one Render web service that serves the API, the WebSocket and the game, deployed from `main`.
+
+1. **Supabase:** create a project in **East US (Ohio)**. Under *Connect*, copy the **Session pooler** URI (port 5432, user `postgres.<project-ref>`) and put the database password in it. The server creates its tables (with row-level security on) the first time it starts; the SQL is in [`db/schema.sql`](db/schema.sql).
+2. **Render:** *New → Blueprint*, pick this repository, and paste the URI as `DATABASE_URL` when asked.
+3. Open `https://<service>.onrender.com/app/` on a phone.
+
+Things to know:
+
+- **One instance only.** The round loop and live connections live in the server process; a second instance or worker would run a second, separate game. `render.yaml` pins one.
+- **Free tier sleep.** Render's free plan sleeps after 15 idle minutes; the first visit then takes about a minute and open connections drop. Balances and history are safe in Supabase.
+- **Supabase pausing.** Free Supabase projects pause after 7 days of low activity; restore the project from the dashboard if the game cannot connect.
+- **Bets riding during a restart** are refunded at 1.00× when the server starts again, as for a failed round.
+- **Postgres tests:** `backend/tests/test_postgres.py` runs only when `TEST_DATABASE_URL` points at a throwaway database (it drops the tables). See the file for a one-line Docker setup.
 
 ## How Ascent meets the brief
 
@@ -65,8 +82,9 @@ Ascent uses play credits only. It has no deposits or payments. It includes respo
 | Server | Python 3.11+, FastAPI, uvicorn |
 | Real-time | WebSocket (`/api/v1/ws`) with reconnect and resync |
 | Frontend | Plain HTML, CSS and JavaScript ES modules; the launch is drawn on a 2D canvas; sound through Web Audio |
-| Storage | In memory: balances and history reset when the server restarts |
-| Tests | pytest + httpx (FastAPI TestClient), 80 tests |
+| Storage | PostgreSQL (Supabase) through psycopg when `DATABASE_URL` is set; in memory otherwise |
+| Hosting | Render web service (`render.yaml`) |
+| Tests | pytest + httpx (FastAPI TestClient), 80 tests, plus 10 PostgreSQL tests against a throwaway database |
 
 ## Project structure
 
@@ -75,7 +93,7 @@ CBNCrashGame/
 ├── config/game.json        # every tunable value
 ├── contract/               # JSON examples and schemas for every request, response and event
 ├── backend/
-│   ├── app/                # config, engine, rng, fairness, ledger, players, api, realtime, main
+│   ├── app/                # config, engine, rng, fairness, ledger, postgres, players, api, realtime, main
 │   └── tests/              # pytest suite
 ├── frontend/
 │   ├── index.html          # the game (served at /app/)
@@ -85,8 +103,10 @@ CBNCrashGame/
 │   │   └── scene/          # scene (the launch), art (vector drawings), milestones (planets)
 │   ├── locales/            # en.json, fr.json
 │   └── assets/sfx/         # sound effects (CC0)
+├── db/schema.sql           # PostgreSQL tables (run by the server on start)
 ├── docs/                   # contract, skeleton notes, handoff, AML handoff, prompt log
-└── scripts/                # dev.ps1, dev.sh, check_env.py, export_schemas.py
+├── scripts/                # dev.ps1, dev.sh, check_env.py, export_schemas.py
+└── render.yaml             # Render deployment
 ```
 
 ## Documentation

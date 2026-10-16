@@ -1,0 +1,27 @@
+# Render blueprint: one web service that serves the API, the WebSocket and the
+# frontend (/app/). The round loop and live connections live in this process,
+# so it must run as exactly one instance with one worker; a second instance
+# would run a second, separate game.
+services:
+  - type: web
+    name: ascent-crash-game
+    runtime: python
+    plan: free
+    # Keep the Supabase project in the same area (East US (Ohio), us-east-2):
+    # every bet and cash out waits for one database round trip.
+    region: ohio
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=backend python -m app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    numInstances: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      # Supabase session pooler URI (port 5432, user postgres.<project-ref>).
+      # Set it in the Render dashboard; it is never committed. Without it the
+      # server falls back to in-memory storage.
+      - key: DATABASE_URL
+        sync: false
+      # ASCENT_DEV_CHEATS is deliberately not set here. Never enable it on Render.

@@ -11,6 +11,7 @@ import logging
 import mimetypes
 import os
 from dataclasses import dataclass
+from typing import Callable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from . import api, realtime
 from .clock import Clock, SystemClock
 from .config import REPO_ROOT, GameConfig, load_config
-from .engine import RoundEngine
+from .engine import RoundEngine, RoundStore
 from .errors import GameError
 from .fairness import FairnessScheme, Sha256Fairness
 from .idempotency import IdempotencyStore, InMemoryIdempotencyStore
@@ -56,8 +57,11 @@ def create_app(
     provider: CrashPointProvider | None = None,
     fairness: FairnessScheme | None = None,
     ledger: Ledger | None = None,
+    idempotency: IdempotencyStore | None = None,
+    rounds: RoundStore | None = None,
     autostart: bool = True,
     dev_cheats: bool | None = None,
+    on_shutdown: Callable[[], None] | None = None,
 ) -> FastAPI:
     """Build the app. Swap a stub for a real implementation by passing it here.
 
@@ -66,6 +70,7 @@ def create_app(
     """
     config = config or load_config()
     ledger = ledger or InMemoryLedger(config.starting_balance_units)
+    idempotency = idempotency or InMemoryIdempotencyStore()
     broadcaster = realtime.Broadcaster()
     rtp, cap = config.targetRtp, config.max_multiplier_hundredths
     engine = RoundEngine(
@@ -75,10 +80,11 @@ def create_app(
         fairness or Sha256Fairness(rtp, cap),
         clock or SystemClock(),
         broadcaster,
+        rounds,
     )
     engine.online_count = broadcaster.online_count
     broadcaster.on_presence = engine.publish_roster
-    services = Services(config, engine, ledger, InMemoryIdempotencyStore(), broadcaster)
+    services = Services(config, engine, ledger, idempotency, broadcaster)
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -90,6 +96,8 @@ def create_app(
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
+            if on_shutdown is not None:
+                on_shutdown()
 
     app = FastAPI(title="Ascent (skeleton)", version=config.contractVersion, lifespan=lifespan)
     app.state.services = services
@@ -129,3 +137,25 @@ def create_app(
     # The frontend's mock mode (?mock=1) reads its event templates from here.
     app.mount("/contract", StaticFiles(directory=CONTRACT_DIR), name="contract")
     return app
+
+
+def create_app_from_env() -> FastAPI:
+    """The server's factory (``python -m app``): PostgreSQL storage when
+    ``DATABASE_URL`` is set, in memory otherwise. Tests use ``create_app``, so
+    they never touch a database by accident."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        log.warning("DATABASE_URL is not set: balances and history are kept in memory and lost on restart.")
+        return create_app()
+    from . import postgres  # only imported when needed, so psycopg is optional locally
+
+    config = load_config()
+    pool = postgres.connect(url)
+    log.info("Storage: PostgreSQL")
+    return create_app(
+        config,
+        ledger=postgres.PostgresLedger(pool, config.starting_balance_units),
+        idempotency=postgres.PostgresIdempotencyStore(pool),
+        rounds=postgres.PostgresRoundStore(pool),
+        on_shutdown=pool.close,
+    )
