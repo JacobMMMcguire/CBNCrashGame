@@ -99,7 +99,7 @@ test("host, two phones: join, play, leaderboard, reconnect, kick, invented token
     await expect(host.locator("#startBtn")).toHaveText("Game running");
     for (const p of [ana, ben]) {
       await expect(p.locator("#stage")).toHaveAttribute("data-state", "betting");
-      await expect(p.locator("#actionBtn")).toHaveText("Place bet · 10.00");
+      await expect(p.locator("#actionBtn")).toHaveText("Place bet · 10.00 play credits");
       await p.locator("#actionBtn").tap();
       await expect(p.locator("#meBalance")).toHaveText("990.00");
     }
