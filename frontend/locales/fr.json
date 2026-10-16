@@ -172,5 +172,11 @@
   "room.error.ROOM_LOCKED": "L'hôte a verrouillé cette salle.",
   "room.error.ROOM_FULL": "Cette salle est pleine.",
   "room.error.NAME_TAKEN": "Quelqu'un dans cette salle porte déjà ce nom. Choisissez-en un autre.",
-  "room.error.FORBIDDEN": "Seul l'hôte peut faire cela."
+  "room.error.FORBIDDEN": "Seul l'hôte peut faire cela.",
+
+  "room.lb.title": "Classement",
+  "room.lb.titleShort": "Classement · Solde (crédits fictifs)",
+  "room.lb.basis": "Classé par solde (crédits fictifs). Mis à jour après chaque manche.",
+  "room.lb.empty": "Les joueurs apparaissent ici en rejoignant.",
+  "room.lb.you": "{name} (vous)"
 }

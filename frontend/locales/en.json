@@ -172,5 +172,11 @@
   "room.error.ROOM_LOCKED": "The host has locked this room.",
   "room.error.ROOM_FULL": "This room is full.",
   "room.error.NAME_TAKEN": "Someone in this room already has that name. Pick another.",
-  "room.error.FORBIDDEN": "Only the host can do that."
+  "room.error.FORBIDDEN": "Only the host can do that.",
+
+  "room.lb.title": "Leaderboard",
+  "room.lb.titleShort": "Leaderboard · Balance (play credits)",
+  "room.lb.basis": "Ranked by balance (play credits). Updated after each round.",
+  "room.lb.empty": "Players appear here as they join.",
+  "room.lb.you": "{name} (you)"
 }

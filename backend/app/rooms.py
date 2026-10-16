@@ -31,7 +31,7 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Callable, Iterator
 
-from . import realtime
+from . import leaderboard, realtime
 from .clock import Clock, iso_ms
 from .config import GameConfig, public_config
 from .engine import RoundEngine
@@ -118,6 +118,10 @@ class Room:
         self.seats: dict[str, Seat] = {}
         self._join_counter = itertools.count(1)
         self.task: asyncio.Task | None = None
+        # Leaderboard state: balances as of the last settled round, and what was last sent.
+        self._settled_balances: dict[str, int] = {}
+        self._last_settled_round: str | None = None
+        self._last_entries: list[dict] | None = None
 
     # ---------- EventSink (engine -> room -> sockets) ----------
 
@@ -127,8 +131,12 @@ class Room:
             self.after_round_settled()
 
     def after_round_settled(self) -> None:
-        """Hook run once per round, after every payout of the round has been applied."""
+        """Run once per round, after every payout of the round has been applied."""
+        self._last_settled_round = self.engine.round.round_id
+        for seat in self.active_seats():
+            self._settled_balances[seat.player_id] = self.ledger.get_account(seat.player_id).balance
         self.sweep()
+        self.refresh_leaderboard()
 
     # ---------- Seats ----------
 
@@ -155,7 +163,7 @@ class Room:
         seat = Seat(player_id, name, next(self._join_counter), disconnected_at_ms=now)
         self.seats[player_id] = seat
         log.info("room %s: %s joined as %s", self.code, player_id, name)
-        self.broadcast_lobby()
+        self.on_roster_changed()
         return seat, token
 
     def authenticate_player(self, session_token: str | None) -> Seat:
@@ -208,7 +216,38 @@ class Room:
             self.on_roster_changed()
 
     def on_roster_changed(self) -> None:
+        """Someone joined, was removed or lost their seat: update the lobby and the ranking."""
         self.broadcast_lobby()
+        self.refresh_leaderboard()
+
+    # ---------- Leaderboard ----------
+
+    def leaderboard_entries(self) -> list[dict]:
+        """Ranked from the server's own balances as of the last settled round.
+
+        A player who joined since then is ranked with the starting balance, so
+        the board never shows a wager that is still in flight.
+        """
+        start = self.config.starting_balance_units
+        return leaderboard.rank([
+            leaderboard.Standing(s.player_id, s.name, self._settled_balances.get(s.player_id, start), s.joined_order)
+            for s in self.active_seats()
+        ])
+
+    def leaderboard_data(self, entries: list[dict] | None = None) -> dict:
+        return {"basis": leaderboard.BASIS, "label": leaderboard.LABEL, "playMoney": True,
+                "afterRoundId": self._last_settled_round,
+                "entries": self.leaderboard_entries() if entries is None else entries}
+
+    def refresh_leaderboard(self) -> dict | None:
+        """Recompute the ranking and broadcast it only if it changed. Returns what was sent."""
+        entries = self.leaderboard_entries()
+        if entries == self._last_entries:
+            return None
+        self._last_entries = entries
+        data = self.leaderboard_data(entries)
+        self.broadcaster.publish({"type": "leaderboard.updated", "data": data})
+        return data
 
     # ---------- Host controls (the caller has already checked the host token) ----------
 
@@ -274,6 +313,7 @@ class Room:
             "history": [{"roundId": h["roundId"], "crash": h["crash"]} for h in self.engine.history("", 10)],
             "config": public_config(self.config),
             "lobby": self.lobby_data(),
+            "leaderboard": self.leaderboard_data(),
             "serverTime": iso_ms(self.clock.now_ms()),
         }
 

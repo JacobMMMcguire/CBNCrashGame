@@ -10,6 +10,9 @@
 import { applyI18n, formatCredits, formatMultiplier, formatNumber, parseCreditsInput, setLanguage, t } from "../i18n.js";
 import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
+import { renderLeaderboard } from "./leaderboard.js";
+
+const PHONE_LB_ROWS = 5;
 
 const $ = (id) => document.getElementById(id);
 const code = (location.pathname.match(/^\/join\/([A-Za-z0-9]{4})\/?$/)?.[1] || "").toUpperCase();
@@ -131,7 +134,11 @@ function onMessage(msg) {
       $("meName").textContent = d.you.name;
       setBalance(d.you.balance);
       renderChips();
+      renderLeaderboard($("lbList"), d.leaderboard, { me: d.you.playerId, limit: PHONE_LB_ROWS });
       show("play");
+      break;
+    case "leaderboard.updated":
+      renderLeaderboard($("lbList"), d, { me: view.you?.playerId, limit: PHONE_LB_ROWS });
       break;
     case "lobby.updated":
       view.room = { ...view.room, locked: d.locked, started: d.started };

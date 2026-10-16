@@ -8,6 +8,7 @@
 import { applyI18n, setLanguage, t } from "../i18n.js";
 import { createRoomSocket, store } from "./socket.js";
 import { createRound, applyRoundEvent, loadSnapshot, renderStage } from "./round.js";
+import { renderLeaderboard } from "./leaderboard.js";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -73,6 +74,9 @@ function onMessage(msg) {
     renderJoin();
     renderLobby();
     renderControls();
+    renderLeaderboard($("lbList"), msg.data.leaderboard);
+  } else if (msg.type === "leaderboard.updated") {
+    renderLeaderboard($("lbList"), msg.data);
   } else if (msg.type === "lobby.updated") {
     view.lobby = msg.data;
     view.room = { ...view.room, locked: msg.data.locked, started: msg.data.started };
