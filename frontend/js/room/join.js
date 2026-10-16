@@ -96,7 +96,7 @@ function showNameForm(message) {
 async function join(e) {
   e.preventDefault();
   const name = $("nameInput").value.trim();
-  if (!name) return;
+  if (!name) { showError($("joinError"), t("room.join.nameRequired")); $("nameInput").focus(); return; }
   $("joinBtn").disabled = true;
   showError($("joinError"), "");
   try {

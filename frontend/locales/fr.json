@@ -142,6 +142,7 @@
   "room.join.next": "Suivant",
   "room.join.nameTitle": "Comment vous appeler?",
   "room.join.nameLabel": "Votre nom",
+  "room.join.nameRequired": "Entrez un nom pour rejoindre.",
   "room.join.joinButton": "Rejoindre la partie",
   "room.join.otherRoom": "Rejoindre une autre salle",
   "room.join.roomLabel": "Salle {code}",

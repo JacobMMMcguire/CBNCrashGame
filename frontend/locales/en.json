@@ -142,6 +142,7 @@
   "room.join.next": "Next",
   "room.join.nameTitle": "What should we call you?",
   "room.join.nameLabel": "Your name",
+  "room.join.nameRequired": "Enter a name to join.",
   "room.join.joinButton": "Join the game",
   "room.join.otherRoom": "Join another room",
   "room.join.roomLabel": "Room {code}",
