@@ -56,13 +56,16 @@ export function createRoomSocket({ code, role, token, onMessage, onStatus, onRej
       const reason = Object.keys(CLOSE).find((k) => CLOSE[k] === e.code);
       if (reason) { stopped = true; onStatus("offline"); onRejected(reason); return; }
       attempt += 1;
-      onStatus("reconnecting");
+      onStatus(navigator.onLine === false ? "offline" : "reconnecting");
       const delay = Math.min(10000, 400 * 2 ** Math.min(attempt, 5)) * (0.75 + Math.random() * 0.5);
       timer = setTimeout(connect, delay);
     };
   }
 
   window.addEventListener("online", () => { if (!stopped && !ws) { attempt = 0; connect(); } });
+  // The device lost its network: a socket can stay "open" for a long time without noticing,
+  // so close it now. The page shows Offline and reconnects when the network returns.
+  window.addEventListener("offline", () => { if (!stopped && ws) ws.close(); });
   // Phones freeze background tabs; reconnect as soon as the page is visible again.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && !stopped && !ws) { attempt = 0; connect(); }
