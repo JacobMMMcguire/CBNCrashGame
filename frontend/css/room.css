@@ -3,6 +3,29 @@
    opens up on wide screens. */
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Room-page tokens, defined on top of the game's palette in tokens.css (sky, panel,
+   flame, eject...). Only the room pages use these names; tokens.css is not changed. */
+.room {
+  --bg: var(--sky-0);
+  --bg-stage: var(--sky-1);
+  --surface: var(--panel-solid);
+  --surface-2: var(--hill-2);
+  --accent: var(--flame);
+  --accent-line: var(--flame);
+  --accent-wash: rgb(255 216 74 / 0.14);
+  --on-accent: var(--on-flame);
+  --win: var(--eject);
+  --abort-wash: rgb(255 107 125 / 0.12);
+  --font-ui: var(--font);
+  --font-data: var(--mono);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --radius-panel: var(--radius); --radius-control: var(--radius-sm); --radius-chip: 999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms; --dur: 260ms;
+}
+
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh;
