@@ -1,7 +1,7 @@
 // End-to-end: one host screen and two phones play a multiplayer room in Edge.
 //
 // The flow is one stateful story, so it is one test made of named steps. The
-// server runs the fast e2e config (2.5 s betting, growthRate 0.3) and the
+// server runs the fast e2e config (4 s betting, growthRate 0.3) and the
 // SKELETON crash list, so a new room's first round crashes at 1.84x.
 import { test, expect, devices, type Browser, type Page } from "@playwright/test";
 

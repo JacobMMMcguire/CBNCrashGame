@@ -6,7 +6,7 @@
   "maxMultiplier": 100.0,
   "growthRate": 0.3,
   "targetRtp": 0.97,
-  "bettingWindowMs": 2500,
+  "bettingWindowMs": 4000,
   "settleDelayMs": 1500,
   "tickIntervalMs": 100,
   "multiplierDecimals": 2,

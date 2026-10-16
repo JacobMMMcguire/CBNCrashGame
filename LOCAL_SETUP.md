@@ -193,7 +193,7 @@ With a tunnel, `ASCENT_HOST` can stay `127.0.0.1`, and the firewall prompt does 
 
 ## 7. End-to-end browser tests (Playwright)
 
-The `e2e/` folder holds Playwright tests that drive one host screen and two emulated phones (Pixel 7 viewport, touch on) through a full room: create, QR code, join, duplicate name, a round with a cash-out, leaderboard ranks and ties, reload and reconnect, kick, and an invented session token. They are separate from pytest: `pytest` never collects them, and they need Node.js.
+The `e2e/` folder holds Playwright tests (`multiplayer.spec.ts` and the review suite `review.spec.ts`, which also saves screenshots of every screen in English and French at 360x640, 390x844 and 1440x900 to `e2e\screenshots\`) that drive one host screen and two emulated phones (Pixel 7 viewport, touch on) through a full room: create, QR code, join, duplicate name, a round with a cash-out, leaderboard ranks and ties, reload and reconnect, kick, and an invented session token. They are separate from pytest: `pytest` never collects them, and they need Node.js.
 
 **Install (once).** You need Node.js 20 or newer (`node --version`) and Microsoft Edge, which comes with Windows. The tests use the installed Edge, so you don't need to run `npx playwright install`. Everything installs inside `e2e\node_modules` (git-ignored) at the exact version pinned in `e2e\package-lock.json`:
 
@@ -209,7 +209,7 @@ cd e2e
 npm test
 ```
 
-- The tests start their **own** server on port **8799** with `STORAGE_BACKEND=memory` and the fast config `e2e\game.e2e.json` (2.5 s betting, faster climb). They never reuse a running server and never open `data\ascent.sqlite3`; `e2e\serve.py` refuses to start without memory storage.
+- The tests start their **own** servers on ports **8799** and **8798** with `STORAGE_BACKEND=memory` and the fast config `e2e\game.e2e.json` (4 s betting, faster climb). The second server pretends to be on a LAN (`PUBLIC_BASE_URL=http://192.168.50.10:8798`) and allows 4 players per room, for the QR-link and room-full checks. They never reuse a running server and never open `data\ascent.sqlite3`; `e2e\serve.py` refuses to start without memory storage.
 - The server is stopped when the run ends. If the run is killed, `serve.py` notices within about a second that the test runner is gone and exits, so no Python process is left behind. To check:
 
   ```powershell
@@ -217,7 +217,7 @@ npm test
   ```
 
   No output means nothing is left over.
-- If port 8799 is already taken, the run stops with an error instead of using whatever is listening there.
+- If port 8799 or 8798 is already taken, the run stops with an error instead of using whatever is listening there.
 
 **When a test fails**, Playwright keeps a screenshot of every page (host and phones) and a trace in `e2e\test-results\` (git-ignored). Open them with:
 
