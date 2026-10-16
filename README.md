@@ -71,7 +71,7 @@ The brief lists these optional enhancements: auto cash out, configurable betting
 | 6 | Configurable betting options | Limits and quick-bet chips come from config | Modularity & Configurability |
 | 7 | Analytics panel (session RTP, biggest win, longest streak) | Engaging and honest numbers about the session | Creativity & Polish |
 | – | Bonus rounds | **Cut** to protect polish | – |
-| – | Multiplayer | **Out of scope** | – |
+| 8 | Multiplayer rooms: host screen, QR join from phones, balance leaderboard | A shared big-screen round for a group; the server still owns every outcome | Backend; Creativity & Polish |
 
 ## Tech stack
 
@@ -80,7 +80,7 @@ The brief lists these optional enhancements: auto cash out, configurable betting
 | Server language / framework | Python 3.11+, FastAPI, served by uvicorn | Skeleton running |
 | Real-time channel | WebSocket (`/api/v1/ws`) | Skeleton running |
 | Frontend | Plain HTML, CSS and JavaScript ES modules, no build step | Shell running |
-| Storage | In memory (a stub; persistence is TBD) | Stub |
+| Storage | Single-player: in memory (stub). Multiplayer: `Storage` interface, SQLite by default (`STORAGE_BACKEND`), Supabase placeholder | Partly real |
 | Testing | pytest + httpx (FastAPI TestClient) | 63 tests |
 | Hosting | TBD | Open, see [HANDOFF](docs/HANDOFF.md) |
 
@@ -116,6 +116,8 @@ CBNCrashGame/
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | Build order with inputs, outputs and "done when" |
 | [docs/SKELETON.md](docs/SKELETON.md) | How the running skeleton is organised, what is stubbed, run and test commands, proposed contract changes |
 | [docs/PROMPTS.md](docs/PROMPTS.md) | Log of AI-assisted prompts |
+| [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) | Multiplayer rooms, leaderboard and QR join, as built |
+| [LOCAL_SETUP.md](LOCAL_SETUP.md) | Windows commands to run multiplayer and join from phones on the same Wi-Fi |
 | [PRODUCT.md](PRODUCT.md) | Users, purpose, principles, success criteria |
 | [DESIGN.md](DESIGN.md) | Palette, typography, spacing, HUD components |
 | [frontend/mock_frontend.html](frontend/mock_frontend.html) | Static mock of the game screen (open it by double-clicking) |
@@ -132,6 +134,8 @@ CBNCrashGame/
 6. **Check the environment:** `.venv\Scripts\python scripts\check_env.py` reports missing packages, or packages blocked by Windows Application Control, in plain words.
 
 The design mock still opens directly from disk: double-click `frontend/mock_frontend.html`.
+
+**Multiplayer:** open <http://127.0.0.1:8001/host>, click **Host a game**, and scan the QR code with phones on the same Wi-Fi. Phones need `ASCENT_HOST=0.0.0.0` and `PUBLIC_BASE_URL=http://<laptop LAN IP>:8001` in `.env`; [LOCAL_SETUP.md](LOCAL_SETUP.md) has the exact steps, the firewall prompt and what to do when the Wi-Fi blocks phones.
 
 ## Team
 

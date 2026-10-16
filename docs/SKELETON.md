@@ -24,7 +24,7 @@ The dev scripts create `.venv`, install `requirements.txt`, run `check_env.py`, 
 
 Mock mode also works from any static server started at the repository root. For example, `python -m http.server 5500` serves it at `http://127.0.0.1:5500/frontend/index.html?mock=1`. The page uses ES modules, so it cannot be opened from `file://`.
 
-Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`. The server reads them from the environment; it does not load `.env` by itself.
+Optional environment variables (names only, see `.env.example`): `ASCENT_CONFIG`, `ASCENT_HOST`, `ASCENT_PORT`, plus the multiplayer settings `PUBLIC_BASE_URL`, `STORAGE_BACKEND`, `SQLITE_PATH`, `SEAT_HOLD_SECONDS` and `MAX_PLAYERS_PER_ROOM`. The server loads `.env` at startup (a small built-in parser in `settings.py`); variables already set in the shell win.
 
 `check_env.py` imports every dependency. If Windows Application Control (WDAC or AppLocker) blocks a compiled file, such as pydantic-core's `.pyd`, it prints a plain `[BLOCKED]` message instead of a traceback. That block is a machine policy: ask the administrator to allow the files. Do not work around it.
 
@@ -46,6 +46,13 @@ backend/app/
   api.py          HTTP routes under /api/v1 (§8), idempotency (§7)
   realtime.py     WebSocket broadcaster, per-connection seq (§9)
   main.py         create_app(): wires everything, CORS, serves /app and /contract
+  commands.py     place_bet / cash_out / idempotency, shared by HTTP and the room WebSocket
+  settings.py     .env loader + PUBLIC_BASE_URL, STORAGE_BACKEND, seat hold (multiplayer)
+  storage.py      Storage interface: SQLite, in-memory, Supabase placeholder (multiplayer)
+  recording_ledger.py  ledger wrapper that logs every bet / cash out / loss to storage
+  rooms.py        RoomRegistry + Room: one engine per room, tokens, seats, lobby, leaderboard
+  rooms_api.py    /api/v1/rooms routes, room WebSocket, /host and /join pages
+  leaderboard.py  ranking by balance, ties share a rank
   __main__.py     `python -m app`: validates config, then starts uvicorn
 backend/tests/    pytest suite (config, engine, API, secrecy, WebSocket, contract examples)
 config/game.json  every tunable value + contractVersion + server.corsAllowOrigins
@@ -63,6 +70,8 @@ frontend/
   js/i18n.js      string catalog and fr-CA / en-CA number formatting
   js/mock.js      ?mock=1 fake server built from contract/examples
   js/components/  header, stage, controls, history, fair, session
+  host.html, join.html, css/room.css, js/room/   multiplayer host screen and phone page
+  vendor/qrcode-generator/                       QR encoder (MIT), vendored
   locales/        en.json, fr.json
 scripts/          dev.ps1, dev.sh, check_env.py, export_schemas.py
 ```
@@ -122,6 +131,7 @@ None of these are in GAME_CONTRACT.md yet. The skeleton implements them, and the
 9. **Idempotency replays** carry an `Idempotent-Replayed: true` header. Rejected requests (4xx game errors) are stored and replayed too.
 10. **Credit strings** must have exactly two decimals in requests (`"100.00"`, not `"100"`).
 11. **`GET /history`** accepts `limit` from 1 to 100 (default 20). The server keeps the last 100 rounds in memory.
+12. **Multiplayer rooms** (branch `multiplayer-lobby`, described in [HOW_IT_WORKS.md](HOW_IT_WORKS.md)): room routes under `/api/v1/rooms`, a room WebSocket, the error codes `ROOM_NOT_FOUND`, `ROOM_LOCKED`, `ROOM_FULL`, `NAME_TAKEN` and `FORBIDDEN`, and `RoundId` widened to `^([A-Z0-9]{4}-)?r_\d+$` so room rounds carry their code (`K7QX-r_1`). Single-player ids are unchanged.
 
 ## Open issues
 

@@ -1,0 +1,2 @@
+# Vendored third-party files: keep them byte-for-byte as published (the README records their SHA-256).
+frontend/vendor/** -text

@@ -62,7 +62,7 @@ Most crash games are a line on a chart with neon trim. Ascent changes two things
 - The server owns the multiplier clock, the crash point and the balance. The client only displays them.
 - The crash point is never sent to the client before the crash happens.
 - Bet and cash-out requests carry idempotency keys.
-- Multiplayer is out of scope.
+- Multiplayer rooms follow the same rules: the server owns each room's round, clock and balances, and phones only send actions. See docs/HOW_IT_WORKS.md.
 
 **Terminology** (use these words consistently in code, copy and docs)
 
@@ -108,7 +108,7 @@ Most crash games are a line on a chart with neon trim. Ascent changes two things
 - A cluttered layout with more than one thing competing for attention during a flight.
 - Real money, deposits, payments, or anything that looks like them.
 - Copied space-agency branding.
-- Multiplayer, chat, leaderboards or social features.
+- Chat or social features beyond the room lobby and the balance leaderboard. The leaderboard ranks play credits only and never celebrates losses.
 - Mechanics designed to encourage chasing losses (no "you almost won!" messages and no streak-loss pressure).
 
 ## Success Criteria (mapped to the judging rubric)
