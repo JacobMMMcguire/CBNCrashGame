@@ -18,7 +18,9 @@ const $ = (id) => document.getElementById(id);
 const code = (location.pathname.match(/^\/join\/([A-Za-z0-9]{4})\/?$/)?.[1] || "").toUpperCase();
 const tokenKey = `ascent-session:${code}`;
 const view = { you: null, room: null, config: null, round: createRound(), bet: null, socket: null, busy: false };
-const keys = new Map(); // "<roundId>:<action>" -> Idempotency-Key, reused when a tap is retried
+// "<roundId>:<action>" -> Idempotency-Key. Kept only while no reply has arrived, so a
+// retry after a timeout cannot double-bet; any reply ends it, so a corrected wager is a new request.
+const keys = new Map();
 
 function show(id) {
   for (const s of ["codeForm", "nameForm", "notice", "play"]) $(s).hidden = s !== id;
@@ -57,6 +59,14 @@ function keyFor(action) {
   const k = `${view.round.roundId}:${action}`;
   if (!keys.has(k)) keys.set(k, uuid4());
   return keys.get(k);
+}
+
+/** Send an action with its idempotency key; forget the key once the server has answered. */
+async function sendWithKey(type, action, fields) {
+  const k = `${view.round.roundId}:${action}`;
+  const reply = await view.socket.send(type, { ...fields, idempotencyKey: keyFor(action) });
+  keys.delete(k);
+  return reply;
 }
 
 // ---------- Join ----------
@@ -225,11 +235,11 @@ async function onAction() {
     if (r.state === "betting" && !view.bet) {
       const wager = parseCreditsInput($("wagerInput").value);
       if (!wager) return;
-      const reply = await view.socket.send("place_bet", { roundId: r.roundId, wager, idempotencyKey: keyFor("bet") });
+      const reply = await sendWithKey("place_bet", "bet", { roundId: r.roundId, wager });
       if (reply.status === 201) view.bet = { wager: reply.body.wager, status: "active" };
       else showError($("playError"), errorText(reply.body));
     } else if (r.state === "in-flight" && view.bet?.status === "active") {
-      const reply = await view.socket.send("cash_out", { roundId: r.roundId, idempotencyKey: keyFor("cashout") });
+      const reply = await sendWithKey("cash_out", "cashout", { roundId: r.roundId });
       if (reply.status === 200) {
         view.bet.status = "cashed-out";
         setResult(t("room.join.cashedOut", { m: formatMultiplier(reply.body.multiplier), p: formatCredits(reply.body.payout) }), "win");
